@@ -1,0 +1,42 @@
+{
+  "name": "ForumSpeak",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "description": "This extension will read a discussion on Reddit outloud.",
+  "background": {
+    "scripts": [
+      "forum_speak_background.js",
+      "forum_speak_popup.js"
+    ],
+    "persistent": true
+  },
+  "commands": {
+    "speak": {
+      "default": "Alt+Shift+S",
+      "mac": "Alt+Shift+S",
+      "description": "Speak"
+    }
+  },
+  "browser_action": {
+    "default_icon": "speak.png",
+    "default_popup": "popup.html",
+    "default_title": "Inject!"
+  },
+  "permissions": [
+    "https://*/*",
+    "http://*/*",
+    "tabs",
+    "ttsEngine"
+  ],
+  "tts_engine": {
+    "voices": [
+      {
+        "voice_name": "Alex",
+        "lang": "en-US",
+        "gender": "male",
+        "event_types": ["end"],
+        "rate": 2
+      }
+    ]
+  }
+}
