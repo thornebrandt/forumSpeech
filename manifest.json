@@ -5,7 +5,6 @@
   "description": "This extension will read a discussion on Reddit outloud.",
   "background": {
     "scripts": [
-      "forum_speak_background.js",
       "forum_speak_popup.js"
     ],
     "persistent": true
@@ -20,7 +19,7 @@
   "browser_action": {
     "default_icon": "speak.png",
     "default_popup": "popup.html",
-    "default_title": "Inject!"
+    "default_title": "ForumSpeak"
   },
   "permissions": [
     "https://*/*",
@@ -34,7 +33,10 @@
         "voice_name": "Alex",
         "lang": "en-US",
         "gender": "male",
-        "event_types": ["end"],
+        "event_types": [
+          "end",
+          "sentence"
+        ],
         "rate": 2
       }
     ]
