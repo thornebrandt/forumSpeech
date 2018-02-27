@@ -4,9 +4,8 @@
   "description": "package for a chrome extension",
   "main": "index.js",
   "scripts": {
-    "start": "node_modules/.bin/webpack && webpack-dev-server --watch --progress",
     "test": "jest --watch --bail",
-    "watch": "node_modules/.bin/webpack --watch"
+    "start": "node_modules/.bin/webpack --watch"
   },
   "author": "Thorne Brandt",
   "license": "ISC",

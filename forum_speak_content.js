@@ -73,11 +73,62 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
 var returnTrue = exports.returnTrue = function returnTrue() {
   return true;
 };
 
+var ForumSpeak = exports.ForumSpeak = function () {
+  function ForumSpeak() {
+    _classCallCheck(this, ForumSpeak);
+  }
+
+  _createClass(ForumSpeak, [{
+    key: 'init',
+    value: function init() {
+      return true;
+    }
+  }, {
+    key: 'parseLinks',
+    value: function parseLinks(body) {
+      var reg = /<a[\s\S]*?>\n?([\s\S]*?)\n?<\/a>/g;
+      return body.replace(reg, '$1, link posted,');
+    }
+  }, {
+    key: 'parseQuotes',
+    value: function parseQuotes(body) {
+      var reg = /<blockquote[\s\S]*?>\n?([\s\S]*?)\n?<\/blockquote>/g;
+      return body.replace(reg, 'quote!, $1, unquote!,');
+    }
+  }, {
+    key: 'parseSpeech',
+    value: function parseSpeech(body) {
+      var parsed_body = this.parseLinks(body);
+      return this.parseQuotes(parsed_body);
+    }
+  }, {
+    key: 'findBody',
+    value: function findBody(item) {
+      var userTextEl = item.querySelector('.usertext-body');
+      var body = '';
+      if (userTextEl) {
+        userTextEl.innerHTML = this.parseSpeech(userTextEl.innerHTML);
+        body = userTextEl.textContent.trim();
+      }
+      return body;
+    }
+  }]);
+
+  return ForumSpeak;
+}();
+
 var initContent = exports.initContent = function initContent() {
+  var fs = new ForumSpeak();
+
   var speaking = false;
   var paused = false;
   var canParse = true;
@@ -160,7 +211,7 @@ var initContent = exports.initContent = function initContent() {
     var userTextEl = item.querySelector('.usertext-body');
     var body = '';
     if (userTextEl) {
-      userTextEl.innerHTML = parseSpeech(userTextEl.innerHTML);
+      userTextEl.innerHTML = fs.parseSpeech(userTextEl.innerHTML);
       body = userTextEl.textContent;
     }
     return body;

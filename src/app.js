@@ -2,7 +2,41 @@ export const returnTrue = () => {
   return true;
 }
 
+export class ForumSpeak {
+  init(){
+    return true;
+  }
+
+  parseLinks(body){
+    const reg = /<a[\s\S]*?>\n?([\s\S]*?)\n?<\/a>/g;
+    return body.replace(reg, '$1, link posted,');
+  }
+
+  parseQuotes(body){
+    const reg = /<blockquote[\s\S]*?>\n?([\s\S]*?)\n?<\/blockquote>/g;
+    return body.replace(reg, 'quote!, $1, unquote!,');
+  }
+
+  parseSpeech(body){
+    let parsed_body = this.parseLinks(body);
+    return this.parseQuotes(parsed_body);
+  }
+
+  findBody(item){
+    const userTextEl = item.querySelector('.usertext-body');
+    let body = '';
+    if(userTextEl) {
+      userTextEl.innerHTML = this.parseSpeech(userTextEl.innerHTML);
+      body = userTextEl.textContent.trim();
+    }
+    return body;
+  }
+
+}
+
 export const initContent = () => {
+  const fs = new ForumSpeak();
+
   let speaking = false;
   let paused = false;
   let canParse = true;
@@ -85,7 +119,7 @@ export const initContent = () => {
     const userTextEl = item.querySelector('.usertext-body');
     let body = '';
     if(userTextEl) {
-      userTextEl.innerHTML = parseSpeech(userTextEl.innerHTML);
+      userTextEl.innerHTML = fs.parseSpeech(userTextEl.innerHTML);
       body = userTextEl.textContent;
     }
     return body;
