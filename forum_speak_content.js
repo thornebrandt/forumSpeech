@@ -76,6 +76,8 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var returnTrue = exports.returnTrue = function returnTrue() {
@@ -120,6 +122,17 @@ var ForumSpeak = exports.ForumSpeak = function () {
         body = userTextEl.textContent.trim();
       }
       return body;
+    }
+  }, {
+    key: 'objectifyContent',
+    value: function objectifyContent(el) {
+      var userBodiesEl = el.getElementsByClassName('entry');
+      var userBodies = [].concat(_toConsumableArray(userBodiesEl));
+      var content = [];
+      userBodies.forEach(function (item, i) {
+        content.push(item);
+      });
+      return content;
     }
   }]);
 

@@ -1,5 +1,9 @@
+// If reddit changes their DOM structure, this is the first place to change.
+// If reddit is changing their UX frequently,
+// I would suggest using a simple archived post for fixtures and regular tests.
 
-function redditTemplate(comment, author){
+
+function redditCommentTemplate(comment, author){
   return (
     `<div class="comment">
       <div class="entry">
@@ -20,10 +24,16 @@ function redditTemplate(comment, author){
   );
 }
 
-
 export function createComment(comment, author='author') {
   const container = document.createElement('div');
-  container.innerHTML = redditTemplate(comment, author);
+  container.innerHTML = redditCommentTemplate(comment, author);
   return container
 };
 
+export function createRedditPage(comments, authors){
+  const wrapper = document.createElement('div');
+  comments.forEach((comment, i) => {
+    wrapper.appendChild(createComment(comments[i], authors[i]));
+  });
+  return wrapper;
+}

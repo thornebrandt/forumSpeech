@@ -1,7 +1,7 @@
 let chrome;
 
 import { ForumSpeak } from '../src/app';
-import { createComment } from '../__fixtures__/reddit.js';
+import * as fixtures from '../__fixtures__/reddit.js';
 
 
 describe('forum speak content script?', () => {
@@ -20,8 +20,15 @@ describe('forum speak content script?', () => {
   });
 
   it('creates fixture comments correctly', () => {
-    const comment = createComment('foo');
+    const comment = fixtures.createComment('foo');
     expect(fs.findBody(comment)).toBe('foo');
+  });
+
+  it('creates a group of fixture comments correctly', () => {
+    const comments = ['hello', 'hi', 'howdy'];
+    const authors = ['a1', 'a2', 'a3'];
+    const forum = fixtures.createRedditPage(comments, authors);
+    expect(fs.objectifyContent(forum).length).toBe(3);
   });
 
 });

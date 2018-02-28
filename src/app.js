@@ -32,6 +32,16 @@ export class ForumSpeak {
     return body;
   }
 
+  objectifyContent(el){
+    const userBodiesEl = el.getElementsByClassName('entry');
+    const userBodies = [...userBodiesEl];
+    const content = [];
+    userBodies.forEach((item, i) => {
+      content.push(item);
+    });
+    return content;
+  }
+
 }
 
 export const initContent = () => {
