@@ -1,14 +1,27 @@
-let chrome;
+let chrome, speechSynthesis;
 
 import { ForumSpeak } from '../src/app';
 import * as fixtures from '../__fixtures__/reddit.js';
-
+import { voices } from '../__fixtures__/voices.js';
 
 describe('forum speak content script?', () => {
   let fs;
 
   beforeEach(() => {
     fs = new ForumSpeak();
+    speechSynthesis = {
+      getVoices: () => {
+        return voices;
+      },
+      speak: jest.fn(),
+      cancel: jest.fn(),
+      pause: jest.fn(),
+      resume: jest.fn(),
+      paused: false,
+      pending: false,
+      speaking: false,
+    };
+
   });
 
   it('has a forumSpeak class', () => {
@@ -31,4 +44,7 @@ describe('forum speak content script?', () => {
     expect(fs.objectifyContent(forum).length).toBe(3);
   });
 
+  it('gets voices', () => {
+    expect(speechSynthesis.getVoices()).toBe(voices);
+  });
 });
