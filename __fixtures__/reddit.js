@@ -24,16 +24,35 @@ function redditCommentTemplate(comment, author){
   );
 }
 
-export function createComment(comment, author='author') {
+function redditTitleTemplate(title){
+  return (
+    `<p class="title">
+      <a class="title" href="#">
+        ${title}
+      </a>
+    </p>`
+  );
+}
+
+export function createComment(comment, author='author'){
   const container = document.createElement('div');
   container.innerHTML = redditCommentTemplate(comment, author);
   return container
 };
 
-export function createRedditPage(comments, authors){
+export function createTitle(title){
+  const titleContainer = document.createElement('div');
+  titleContainer.innerHTML = redditTitleTemplate(title);
+  return titleContainer
+}
+
+export function createRedditPage(comments, authors, title){
   const wrapper = document.createElement('div');
   comments.forEach((comment, i) => {
     wrapper.appendChild(createComment(comments[i], authors[i]));
   });
+  if(title){
+    wrapper.prepend(createTitle(title));
+  }
   return wrapper;
 }

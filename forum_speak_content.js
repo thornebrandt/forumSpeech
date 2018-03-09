@@ -213,6 +213,17 @@ var ForumSpeak = exports.ForumSpeak = function () {
       return contentEl.length > 0;
     }
   }, {
+    key: 'hasTitle',
+    value: function hasTitle(el) {
+      var titleEl = el.querySelectorAll('a.title');
+      return titleEl.length > 0;
+    }
+  }, {
+    key: 'findTitle',
+    value: function findTitle(el) {
+      return el.querySelectorAll('a.title')[0].textContent.trim();
+    }
+  }, {
     key: 'objectifyContent',
     value: function objectifyContent(el, authors) {
       var _this4 = this;
@@ -223,20 +234,32 @@ var ForumSpeak = exports.ForumSpeak = function () {
       content.forEach(function (comment, i) {
         var author = _this4.findAuthor(comment);
         var body = _this4.findBody(comment);
-        contentArray.push({
-          author: author,
-          comment: body,
-          voice: authors[author].voice,
-          op: authors[author].op,
-          pitch: authors[author].pitch
-        });
+        if (author) {
+          contentArray.push({
+            author: author,
+            comment: body,
+            voice: authors[author].voice,
+            op: authors[author].op,
+            pitch: authors[author].pitch
+          });
+        }
       });
+      if (this.hasTitle(el)) {
+        var title = this.findTitle(el);
+        contentArray.unshift({
+          author: contentArray[0].author,
+          comment: title,
+          voice: contentArray[0].voice,
+          op: true,
+          pitch: contentArray[0].pitch
+        });
+      }
       return contentArray;
     }
   }, {
     key: 'getRandomPitch',
     value: function getRandomPitch() {
-      return (Math.random() * (0.2 - 1.8) + 1.8).toFixed(4);
+      return (Math.random() * (0.3 - 1.7) + 1.7).toFixed(4);
     }
   }, {
     key: 'togglePause',
@@ -261,7 +284,6 @@ var ForumSpeak = exports.ForumSpeak = function () {
   }, {
     key: 'utteranceEndHandler',
     value: function utteranceEndHandler(e, dude) {
-      console.log(this, this.currentComment);
       if (this.speaking) {
         this.currentComment++;
       }
@@ -269,9 +291,7 @@ var ForumSpeak = exports.ForumSpeak = function () {
   }, {
     key: 'nextComment',
     value: function nextComment() {
-      console.log('before add', this.currentComment);
       this.currentComment++;
-      console.log('after add', this.currentComment);
       this.speakComments(this.currentComment);
     }
   }, {
@@ -297,10 +317,9 @@ var ForumSpeak = exports.ForumSpeak = function () {
       speechSynthesis.cancel();
       this.speaking = true;
       if (this.currentComment < 0 || this.currentComment > this.utterances.length - 1) {
-        console.log('end handler');
+        console.log('stop handler');
       } else {
         for (var i = this.currentComment; i < this.utterances.length; i++) {
-          console.log('starting with i', i);
           this.speakComment(this.utterances[i]);
         }
       }

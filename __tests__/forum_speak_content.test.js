@@ -148,6 +148,33 @@ describe('forum speak content script?', () => {
     ]);
   });
 
+  it('includes a title', () => {
+    const comments = ['subtitle'];
+    const authors = ['a1'];
+    const title = 'title';
+    const forum = fixtures.createRedditPage(comments, authors, title);
+    const authorsObject = fs.assignVoicesToAuthors(forum, voices);
+    expect(fs.hasTitle(forum)).toBeTruthy();
+
+    expect(fs.objectifyContent(forum, authorsObject)).toEqual([
+      {
+        author: 'a1',
+        comment: 'title',
+        voice: voices[0],
+        op: true,
+        pitch: 1,
+      },
+      {
+        author: 'a1',
+        comment: 'subtitle',
+        voice: voices[0],
+        op: true,
+        pitch: 1,
+      }
+    ]);
+
+  });
+
   it('creates utterances queue from content', () => {
     const contentArray = [
       {

@@ -107,6 +107,15 @@ export class ForumSpeak {
     return contentEl.length > 0;
   }
 
+  hasTitle(el){
+    const titleEl = el.querySelectorAll('a.title');
+    return titleEl.length > 0;
+  }
+
+  findTitle(el){
+    return el.querySelectorAll('a.title')[0].textContent.trim();
+  }
+
   objectifyContent(el, authors){
     const contentEl = el.getElementsByClassName('entry');
     const content = [...contentEl];
@@ -114,19 +123,31 @@ export class ForumSpeak {
     content.forEach((comment, i) => {
       const author = this.findAuthor(comment);
       const body = this.findBody(comment);
-      contentArray.push({
-        author,
-        comment: body,
-        voice: authors[author].voice,
-        op: authors[author].op,
-        pitch: authors[author].pitch,
-      });
+      if(author){
+        contentArray.push({
+          author,
+          comment: body,
+          voice: authors[author].voice,
+          op: authors[author].op,
+          pitch: authors[author].pitch,
+        });
+      }
     });
+    if(this.hasTitle(el)){
+      const title = this.findTitle(el);
+      contentArray.unshift({
+        author: contentArray[0].author,
+        comment: title,
+        voice: contentArray[0].voice,
+        op: true,
+        pitch: contentArray[0].pitch
+      });
+    }
     return contentArray;
   }
 
   getRandomPitch(){
-    return (Math.random() * (0.2 - 1.8) + 1.8).toFixed(4)
+    return (Math.random() * (0.3 - 1.7) + 1.7).toFixed(4)
   }
 
   togglePause(){
@@ -148,16 +169,13 @@ export class ForumSpeak {
   }
 
   utteranceEndHandler(e, dude){
-    console.log(this, this.currentComment);
     if(this.speaking){
       this.currentComment++;
     }
   }
 
   nextComment(){
-    console.log('before add', this.currentComment);
     this.currentComment++;
-    console.log('after add', this.currentComment);
     this.speakComments(this.currentComment);
   }
 
@@ -180,10 +198,9 @@ export class ForumSpeak {
     speechSynthesis.cancel();
     this.speaking = true;
     if(this.currentComment < 0 || this.currentComment > this.utterances.length - 1){
-      console.log('end handler');
+      console.log('stop handler');
     } else {
       for(var i = this.currentComment; i < this.utterances.length; i++){
-        console.log('starting with i', i);
         this.speakComment(this.utterances[i]);
       }
     }
