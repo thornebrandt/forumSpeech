@@ -61,6 +61,7 @@ export class ForumSpeak {
         utterance.pitch = entry.pitch;
         utterance.voice = entry.voice;
         utterance.rate = this.rate;
+        utterance.onend = this.utteranceEndHandler.bind(this);
         utterances.push(utterance);
       });
       return utterances;
@@ -111,7 +112,6 @@ export class ForumSpeak {
     const content = [...contentEl];
     const contentArray = [];
     content.forEach((comment, i) => {
-      console.log('hah', authors);
       const author = this.findAuthor(comment);
       const body = this.findBody(comment);
       contentArray.push({
@@ -147,25 +147,29 @@ export class ForumSpeak {
     this.speaking = false;
   }
 
-  utteranceEndHandler(e){
+  utteranceEndHandler(e, dude){
+    console.log(this, this.currentComment);
     if(this.speaking){
       this.currentComment++;
     }
   }
 
   nextComment(){
-    currentComment++;
-    speakComments(currentComment);
+    console.log('before add', this.currentComment);
+    this.currentComment++;
+    console.log('after add', this.currentComment);
+    this.speakComments(this.currentComment);
   }
 
   previousComment(){
-    currentComment--;
-    speakComments(currentComment);
+    this.currentComment--;
+    this.speakComments(this.currentComment);
   }
 
   startSpeaking(){
     if(this.voices.length && this.contentArray.length){
       this.utterances = this.contentToUtterances(this.contentArray);
+      this.speakComments(this.currentComment);
     } else {
       console.log("can't parse");
     }
@@ -175,11 +179,13 @@ export class ForumSpeak {
     this.speaking = false;
     speechSynthesis.cancel();
     this.speaking = true;
-    if(this.currentComment < 0 || this.currentComment > utterances.length - 1){
-      console.log('page complete');
-    }
-    for(var i = this.currentComment; i < utterances.length; i++){
-      this.speakComment(utterances[i]);
+    if(this.currentComment < 0 || this.currentComment > this.utterances.length - 1){
+      console.log('end handler');
+    } else {
+      for(var i = this.currentComment; i < this.utterances.length; i++){
+        console.log('starting with i', i);
+        this.speakComment(this.utterances[i]);
+      }
     }
   }
 
@@ -221,9 +227,6 @@ export class ForumSpeak {
               break;
             case "pause":
               this.togglePause();
-              break;
-            case "init":
-              console.log('do we need init?');
               break;
           }
         }.bind(this)

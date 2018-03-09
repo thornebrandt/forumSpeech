@@ -161,6 +161,7 @@ var ForumSpeak = exports.ForumSpeak = function () {
           utterance.pitch = entry.pitch;
           utterance.voice = entry.voice;
           utterance.rate = _this2.rate;
+          utterance.onend = _this2.utteranceEndHandler.bind(_this2);
           utterances.push(utterance);
         });
         return utterances;
@@ -220,7 +221,6 @@ var ForumSpeak = exports.ForumSpeak = function () {
       var content = [].concat(_toConsumableArray(contentEl));
       var contentArray = [];
       content.forEach(function (comment, i) {
-        console.log('hah', authors);
         var author = _this4.findAuthor(comment);
         var body = _this4.findBody(comment);
         contentArray.push({
@@ -260,7 +260,8 @@ var ForumSpeak = exports.ForumSpeak = function () {
     }
   }, {
     key: 'utteranceEndHandler',
-    value: function utteranceEndHandler(e) {
+    value: function utteranceEndHandler(e, dude) {
+      console.log(this, this.currentComment);
       if (this.speaking) {
         this.currentComment++;
       }
@@ -268,20 +269,23 @@ var ForumSpeak = exports.ForumSpeak = function () {
   }, {
     key: 'nextComment',
     value: function nextComment() {
-      currentComment++;
-      speakComments(currentComment);
+      console.log('before add', this.currentComment);
+      this.currentComment++;
+      console.log('after add', this.currentComment);
+      this.speakComments(this.currentComment);
     }
   }, {
     key: 'previousComment',
     value: function previousComment() {
-      currentComment--;
-      speakComments(currentComment);
+      this.currentComment--;
+      this.speakComments(this.currentComment);
     }
   }, {
     key: 'startSpeaking',
     value: function startSpeaking() {
       if (this.voices.length && this.contentArray.length) {
         this.utterances = this.contentToUtterances(this.contentArray);
+        this.speakComments(this.currentComment);
       } else {
         console.log("can't parse");
       }
@@ -292,11 +296,13 @@ var ForumSpeak = exports.ForumSpeak = function () {
       this.speaking = false;
       speechSynthesis.cancel();
       this.speaking = true;
-      if (this.currentComment < 0 || this.currentComment > utterances.length - 1) {
-        console.log('page complete');
-      }
-      for (var i = this.currentComment; i < utterances.length; i++) {
-        this.speakComment(utterances[i]);
+      if (this.currentComment < 0 || this.currentComment > this.utterances.length - 1) {
+        console.log('end handler');
+      } else {
+        for (var i = this.currentComment; i < this.utterances.length; i++) {
+          console.log('starting with i', i);
+          this.speakComment(this.utterances[i]);
+        }
       }
     }
   }, {
@@ -340,9 +346,6 @@ var ForumSpeak = exports.ForumSpeak = function () {
               break;
             case "pause":
               this.togglePause();
-              break;
-            case "init":
-              console.log('do we need init?');
               break;
           }
         }.bind(this));

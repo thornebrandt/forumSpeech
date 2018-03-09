@@ -20,9 +20,7 @@ const initContent = () => {
   const stopBtn = document.getElementById('stopSpeaking');
   speakContentBtn.addEventListener('click', speakContentHandler);
   stopBtn.addEventListener('click', stopSpeakingHandler);
-  chrome.tabs.executeScript({ file: 'forum_speak_content.js', allFrames: false }, (e) => {
-    sendMessage('init');
-  });
+  chrome.tabs.executeScript({ file: 'forum_speak_content.js', allFrames: false });
 };
 
 document.addEventListener("DOMContentLoaded", initContent);

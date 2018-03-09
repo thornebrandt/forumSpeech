@@ -3,13 +3,15 @@ import { ForumSpeak } from '../src/app';
 import * as fixtures from '../__fixtures__/reddit.js';
 import { voices } from '../__fixtures__/voices.js';
 
-let fs;
+let fs, utteranceEndHandler;
 
 describe('forum speak content script?', () => {
 
   beforeEach(() => {
     fs = new ForumSpeak();
     fs.getRandomPitch = () => 1;
+    utteranceEndHandler = jest.fn();
+    fs.utteranceEndHandler = utteranceEndHandler;
     window.speechSynthesis = {
       getVoices: () => {
         return voices;
@@ -155,14 +157,9 @@ describe('forum speak content script?', () => {
         pitch: 1,
       }
     ];
-    expect(fs.contentToUtterances(contentArray)).toEqual([
-      {
-        text: 'hello',
-        voice: voices[0],
-        rate: 1.4,
-        pitch: 1,
-      }
-    ]);
+    expect(fs.contentToUtterances(contentArray)[0].voice)
+      .toEqual(voices[0]);
+
   });
 
 
