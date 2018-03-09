@@ -1,7 +1,37 @@
 export class ForumSpeak {
-  init(){
-    return true;
+  constructor(){
+    this.rate = 1.4;
+    this.voices = [];
+    this.speaking = false;
+    this.paused = false;
+    this.currentComment = 0;
+    if(this.canParse(document.body)){
+      this.initialize();
+    } else {
+      this.parseFailHandler();
+    }
   }
+
+  initialize(){
+    this.setupMessageListeners();
+    this.setupKeyboardListeners();
+    this.initializeVoices(() => {
+      this.voices = this.filterVoices(speechSynthesis.getVoices());
+      this.authorsObject = this.assignVoicesToAuthors(document.body, this.voices);
+      this.contentArray = this.objectifyContent(document.body, this.authorsObject);
+    });
+  }
+
+  parseFailHandler(){
+    //send message back to popup to clear interface.
+  }
+
+  initializeVoices(voicesLoadedCallback){
+    speechSynthesis.onvoiceschanged = voicesLoadedCallback;
+    if(speechSynthesis.getVoices().length){
+      voicesLoadedCallback();
+    }
+  };
 
   parseLinks(body){
     const reg = /<a[\s\S]*?>\n?([\s\S]*?)\n?<\/a>/g;
@@ -18,33 +48,22 @@ export class ForumSpeak {
     return this.parseQuotes(parsed_body);
   }
 
-  parseVoices(voices){
+  filterVoices(voices){
     return voices.filter((voice) => (
       voice.lang === 'en-US' && voice.localService));
   };
 
-  contentToUtterances(contentArray){
+  contentToUtterances(contentArray, utterances = []){
     if(!utterances.length) {
-      for(var i = 0; i < entries.length; i++){
-        const author = findAuthor(entries.item(i), i);
-        if(author) {
-          const body = findBody(entries.item(i));
-          //if author
-          //const post = author + " writes,," + body;
-          const post = " , " + body + " , "; //voice changes reference comment changes
-          posts.push(post);
-          const utterance = new SpeechSynthesisUtterance();
-          utterance.text = post;
-          utterance.rate = 1.5;
-          utterance.pitch = (Math.random() * (0.2 - 1.8) + 1.8).toFixed(4)
-          utterance.voice = voices[i % (voices.length - 1)];
-          utterance.onend = utteranceEndHandler;
-          utterances.push(utterance);
-        }
-      }
-      if(!utterances.length){
-        canParse = false;
-      }
+      contentArray.forEach((entry, i) => {
+        const utterance = new window.SpeechSynthesisUtterance();
+        utterance.text = entry.comment;
+        utterance.pitch = entry.pitch;
+        utterance.voice = entry.voice;
+        utterance.rate = this.rate;
+        utterances.push(utterance);
+      });
+      return utterances;
     }
   };
 
@@ -82,17 +101,25 @@ export class ForumSpeak {
     return authorObject;
   }
 
-  objectifyContent(el, voices){
+  canParse(el){
+    const contentEl = el.getElementsByClassName('entry');
+    return contentEl.length > 0;
+  }
+
+  objectifyContent(el, authors){
     const contentEl = el.getElementsByClassName('entry');
     const content = [...contentEl];
     const contentArray = [];
-    content.forEach((item, i) => {
+    content.forEach((comment, i) => {
+      console.log('hah', authors);
+      const author = this.findAuthor(comment);
+      const body = this.findBody(comment);
       contentArray.push({
-        author: 'a1',
-        comment: 'hello',
-        voice: voices[0],
-        op: true,
-        pitch: 1,
+        author,
+        comment: body,
+        voice: authors[author].voice,
+        op: authors[author].op,
+        pitch: authors[author].pitch,
       });
     });
     return contentArray;
@@ -102,208 +129,111 @@ export class ForumSpeak {
     return (Math.random() * (0.2 - 1.8) + 1.8).toFixed(4)
   }
 
-}
-
-export const initContent = () => {
-  const fs = new ForumSpeak();
-  let speaking = false;
-  let paused = false;
-  let canParse = true;
-  let currentComment = 0;
-  let voices;
-  const entries = document.getElementsByClassName("entry");
-  const posts = [];
-  const utterances = [];
-
-  const returnTrue = () => {
-    return true;
-  }
-
-  const parseLinks = (body) => {
-    const reg = /<a[\s\S]*?>\n?([\s\S]*?)\n?<\/a>/g;
-    return body.replace(reg, '$1, link posted,');
-  }
-
-  const parseQuotes = (body) => {
-    const reg = /<blockquote[\s\S]*?>\n?([\s\S]*?)\n?<\/blockquote>/g;
-    return body.replace(reg, 'quote!, $1, unquote!,');
-  }
-
-  const parseSpeech = (body) => {
-    let parsed_body = parseLinks(body);
-    return parseQuotes(parsed_body);
-  }
-
-  const findAuthor = (item, i) => {
-    const authorEl = item.querySelector('.author');
-    if(authorEl){
-      let author = authorEl.textContent;
-      const OP = item.querySelector('.submitter');
-      if( OP ){
-        if ( i === 0 ) {
-          const OP = author;
-          author = "The original poster, " + OP;
-        } else {
-          author = "OP";
-        }
-      }
-      return author;
-    }
-    return false;
-  }
-
-  const togglePause = () => {
-    if(paused){
+  togglePause(){
+    if(this.paused){
       speechSynthesis.resume();
-      paused = false;
-      speaking = true;
+      this.paused = false;
+      this.speaking = true;
     } else {
       speechSynthesis.pause();
-      paused = true;
-      speaking = false;
+      this.paused = true;
+      this.speaking = false;
     }
-  };
-
-  const stopSpeaking = () => {
-    speechSynthesis.pause();
-    paused = true;
-    speaking = false;
-  };
-
-  const utteranceEndHandler = (e) => {
-    currentComment++;
-  };
-
-  const nextComment = () => {
-    currentComment++;
-    speakComments(currentComment);
-  };
-
-  const previousComment = () => {
-    currentComment--;
-    speakComments(currentComment);
-  };
-
-  const findBody = (item) => {
-    const userTextEl = item.querySelector('.usertext-body');
-    let body = '';
-    if(userTextEl) {
-      userTextEl.innerHTML = fs.parseSpeech(userTextEl.innerHTML);
-      body = userTextEl.textContent;
-    }
-    return body;
   }
 
-  const parseVoices = () => {
-    return speechSynthesis.getVoices().filter((voice) => (
-      voice.lang === 'en-US' && voice.localService));
-  };
+  stopSpeaking(){
+    speechSynthesis.pause();
+    this.paused = true;
+    this.speaking = false;
+  }
 
-  const parseContent = () => {
-    if(!utterances.length) {
-      for(var i = 0; i < entries.length; i++){
-        const author = findAuthor(entries.item(i), i);
-        if(author) {
-          const body = findBody(entries.item(i));
-          //if author
-          //const post = author + " writes,," + body;
-          const post = " , " + body + " , "; //voice changes reference comment changes
-          posts.push(post);
-          const utterance = new SpeechSynthesisUtterance();
-          utterance.text = post;
-          utterance.rate = 1.5;
-          utterance.pitch = (Math.random() * (0.2 - 1.8) + 1.8).toFixed(4)
-          utterance.voice = voices[i % (voices.length - 1)];
-          utterance.onend = utteranceEndHandler;
-          utterances.push(utterance);
-        }
-      }
-      if(!utterances.length){
-        canParse = false;
-      }
+  utteranceEndHandler(e){
+    if(this.speaking){
+      this.currentComment++;
     }
-  };
+  }
 
-  const speakContent = () => {
-    if(canParse){
-      voices = parseVoices();
-      parseContent();
-      speakComments(currentComment);
+  nextComment(){
+    currentComment++;
+    speakComments(currentComment);
+  }
+
+  previousComment(){
+    currentComment--;
+    speakComments(currentComment);
+  }
+
+  startSpeaking(){
+    if(this.voices.length && this.contentArray.length){
+      this.utterances = this.contentToUtterances(this.contentArray);
     } else {
       console.log("can't parse");
     }
-  };
+  }
 
-  const speakComments = (currentComment) => {
-    //loads up queue
+  speakComments(currentComment){
+    this.speaking = false;
     speechSynthesis.cancel();
-    if( currentComment < 0 ||
-      currentComment > utterances.length - 1 ) {
-      console.log('out of range');
-    } else {
-      for(var i = currentComment; i < utterances.length; i++){
-        speakComment(i);
-      }
-      speaking = true;
+    this.speaking = true;
+    if(this.currentComment < 0 || this.currentComment > utterances.length - 1){
+      console.log('page complete');
     }
-  };
-
-  const speakComment = (comment) => {
-    speechSynthesis.speak(utterances[comment]);
-  };
-
-  const initializeSpeaking = () => {
-    currentComment = 0;
-    speechSynthesis.onvoiceschanged = function() {
-      speakContent(currentComment);
-    };
-
-    if(speechSynthesis.getVoices().length){
-      speakContent(currentComment);
+    for(var i = this.currentComment; i < utterances.length; i++){
+      this.speakComment(utterances[i]);
     }
-  };
+  }
 
-  function init(){
+  speakComment(utterance){
+    speechSynthesis.speak(utterance);
+  }
+
+  setupKeyboardListeners(){
     document.onkeydown = function(evt) {
       switch(evt.code){
         case "Space":
-          togglePause();
+          this.togglePause();
           break;
         case "ArrowRight":
-          if(speaking){
-            nextComment();
+          if(this.speaking){
+            this.nextComment();
           };
         case "ArrowLeft":
-          if(speaking){
-            previousComment();
+          if(this.speaking){
+            this.previousComment();
           };
         default:
           //console.log(evt.code);
           break;
       }
-    };
+    }.bind(this);
   }
 
-  if( typeof(chrome) !== 'undefined' ) {
-    chrome.runtime.onMessage.addListener(
-      function(request, sender, sendResponse) {
-        switch(request.message){
-          case "speak":
-            initializeSpeaking();
-            break;
-          case "stop":
-            stopSpeaking();
-            break;
-          case "pause":
-            togglePause();
-            break;
-          case "init":
-            init();
-            break;
-        }
-      }
-    );
+  setupMessageListeners(){
+    if( typeof(chrome) !== 'undefined' ) {
+      chrome.runtime.onMessage.addListener(
+        function(request, sender, sendResponse) {
+          switch(request.message){
+            case "speak":
+              this.startSpeaking();
+              break;
+            case "stop":
+              this.stopSpeaking();
+              break;
+            case "pause":
+              this.togglePause();
+              break;
+            case "init":
+              console.log('do we need init?');
+              break;
+          }
+        }.bind(this)
+      )
+    }
   }
+}
+
+const initContent = () => {
+  const fs = new ForumSpeak();
 };
 
 initContent();

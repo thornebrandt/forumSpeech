@@ -1,16 +1,16 @@
-let chrome, speechSynthesis, SpeechSynthesisUtterance;
-
+import chrome from 'sinon-chrome/extensions';
 import { ForumSpeak } from '../src/app';
 import * as fixtures from '../__fixtures__/reddit.js';
 import { voices } from '../__fixtures__/voices.js';
 
+let fs;
+
 describe('forum speak content script?', () => {
-  let fs;
 
   beforeEach(() => {
     fs = new ForumSpeak();
     fs.getRandomPitch = () => 1;
-    speechSynthesis = {
+    window.speechSynthesis = {
       getVoices: () => {
         return voices;
       },
@@ -22,9 +22,16 @@ describe('forum speak content script?', () => {
       pending: false,
       speaking: false,
     };
-    SpeechSynthesisUtterance = () => {
+    window.SpeechSynthesisUtterance = () => {
       return {}
     }
+  });
+
+  it('checks if it can parse the page', () => {
+    const comments = ['hello'];
+    const authors = ['author1'];
+    const forum = fixtures.createRedditPage(comments, authors);
+    expect(fs.canParse(forum)).toBeTruthy();
   });
 
   it('finds body in comments correctly', () => {
@@ -50,7 +57,7 @@ describe('forum speak content script?', () => {
   });
 
   it('gets parsed english voices from forum speak object', () => {
-    expect(fs.parseVoices(voices)).toEqual([voices[0]]);
+    expect(fs.filterVoices(voices)).toEqual([voices[0]]);
   });
 
   it('assigns a random pitch', () => {
@@ -127,7 +134,8 @@ describe('forum speak content script?', () => {
     const comments = ['hello'];
     const authors = ['a1'];
     const forum = fixtures.createRedditPage(comments, authors);
-    expect(fs.objectifyContent(forum, voices)).toEqual([
+    const authorsObject = fs.assignVoicesToAuthors(forum, voices);
+    expect(fs.objectifyContent(forum, authorsObject)).toEqual([
       {
         author: 'a1',
         comment: 'hello',
@@ -137,5 +145,30 @@ describe('forum speak content script?', () => {
       }
     ]);
   });
+
+  it('creates utterances queue from content', () => {
+    const contentArray = [
+      {
+        author: 'a1',
+        comment: 'hello',
+        voice: voices[0],
+        pitch: 1,
+      }
+    ];
+    expect(fs.contentToUtterances(contentArray)).toEqual([
+      {
+        text: 'hello',
+        voice: voices[0],
+        rate: 1.4,
+        pitch: 1,
+      }
+    ]);
+  });
+
+
+  it('uses chrome', () => {
+    expect(chrome).toBeTruthy();
+  });
+
 
 });

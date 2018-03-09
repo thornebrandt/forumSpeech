@@ -83,12 +83,44 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var ForumSpeak = exports.ForumSpeak = function () {
   function ForumSpeak() {
     _classCallCheck(this, ForumSpeak);
+
+    this.rate = 1.4;
+    this.voices = [];
+    this.speaking = false;
+    this.paused = false;
+    this.currentComment = 0;
+    if (this.canParse(document.body)) {
+      this.initialize();
+    } else {
+      this.parseFailHandler();
+    }
   }
 
   _createClass(ForumSpeak, [{
-    key: 'init',
-    value: function init() {
-      return true;
+    key: 'initialize',
+    value: function initialize() {
+      var _this = this;
+
+      this.setupMessageListeners();
+      this.setupKeyboardListeners();
+      this.initializeVoices(function () {
+        _this.voices = _this.filterVoices(speechSynthesis.getVoices());
+        _this.authorsObject = _this.assignVoicesToAuthors(document.body, _this.voices);
+        _this.contentArray = _this.objectifyContent(document.body, _this.authorsObject);
+      });
+    }
+  }, {
+    key: 'parseFailHandler',
+    value: function parseFailHandler() {
+      //send message back to popup to clear interface.
+    }
+  }, {
+    key: 'initializeVoices',
+    value: function initializeVoices(voicesLoadedCallback) {
+      speechSynthesis.onvoiceschanged = voicesLoadedCallback;
+      if (speechSynthesis.getVoices().length) {
+        voicesLoadedCallback();
+      }
     }
   }, {
     key: 'parseLinks',
@@ -109,8 +141,8 @@ var ForumSpeak = exports.ForumSpeak = function () {
       return this.parseQuotes(parsed_body);
     }
   }, {
-    key: 'parseVoices',
-    value: function parseVoices(voices) {
+    key: 'filterVoices',
+    value: function filterVoices(voices) {
       return voices.filter(function (voice) {
         return voice.lang === 'en-US' && voice.localService;
       });
@@ -118,27 +150,20 @@ var ForumSpeak = exports.ForumSpeak = function () {
   }, {
     key: 'contentToUtterances',
     value: function contentToUtterances(contentArray) {
+      var _this2 = this;
+
+      var utterances = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+
       if (!utterances.length) {
-        for (var i = 0; i < entries.length; i++) {
-          var author = findAuthor(entries.item(i), i);
-          if (author) {
-            var body = findBody(entries.item(i));
-            //if author
-            //const post = author + " writes,," + body;
-            var post = " , " + body + " , "; //voice changes reference comment changes
-            posts.push(post);
-            var utterance = new SpeechSynthesisUtterance();
-            utterance.text = post;
-            utterance.rate = 1.5;
-            utterance.pitch = (Math.random() * (0.2 - 1.8) + 1.8).toFixed(4);
-            utterance.voice = voices[i % (voices.length - 1)];
-            utterance.onend = utteranceEndHandler;
-            utterances.push(utterance);
-          }
-        }
-        if (!utterances.length) {
-          canParse = false;
-        }
+        contentArray.forEach(function (entry, i) {
+          var utterance = new window.SpeechSynthesisUtterance();
+          utterance.text = entry.comment;
+          utterance.pitch = entry.pitch;
+          utterance.voice = entry.voice;
+          utterance.rate = _this2.rate;
+          utterances.push(utterance);
+        });
+        return utterances;
       }
     }
   }, {
@@ -165,34 +190,45 @@ var ForumSpeak = exports.ForumSpeak = function () {
   }, {
     key: 'assignVoicesToAuthors',
     value: function assignVoicesToAuthors(el, voices) {
-      var _this = this;
+      var _this3 = this;
 
       var contentEl = el.getElementsByClassName('entry');
       var content = [].concat(_toConsumableArray(contentEl));
       var authorObject = {};
       content.forEach(function (item, i) {
-        var author = _this.findAuthor(item, i);
+        var author = _this3.findAuthor(item, i);
         authorObject[author] = authorObject[author] || {
           voice: voices[i % voices.length],
           op: i === 0,
-          pitch: _this.getRandomPitch()
+          pitch: _this3.getRandomPitch()
         };
       });
       return authorObject;
     }
   }, {
+    key: 'canParse',
+    value: function canParse(el) {
+      var contentEl = el.getElementsByClassName('entry');
+      return contentEl.length > 0;
+    }
+  }, {
     key: 'objectifyContent',
-    value: function objectifyContent(el, voices) {
+    value: function objectifyContent(el, authors) {
+      var _this4 = this;
+
       var contentEl = el.getElementsByClassName('entry');
       var content = [].concat(_toConsumableArray(contentEl));
       var contentArray = [];
-      content.forEach(function (item, i) {
+      content.forEach(function (comment, i) {
+        console.log('hah', authors);
+        var author = _this4.findAuthor(comment);
+        var body = _this4.findBody(comment);
         contentArray.push({
-          author: 'a1',
-          comment: 'hello',
-          voice: voices[0],
-          op: true,
-          pitch: 1
+          author: author,
+          comment: body,
+          voice: authors[author].voice,
+          op: authors[author].op,
+          pitch: authors[author].pitch
         });
       });
       return contentArray;
@@ -202,209 +238,123 @@ var ForumSpeak = exports.ForumSpeak = function () {
     value: function getRandomPitch() {
       return (Math.random() * (0.2 - 1.8) + 1.8).toFixed(4);
     }
+  }, {
+    key: 'togglePause',
+    value: function togglePause() {
+      if (this.paused) {
+        speechSynthesis.resume();
+        this.paused = false;
+        this.speaking = true;
+      } else {
+        speechSynthesis.pause();
+        this.paused = true;
+        this.speaking = false;
+      }
+    }
+  }, {
+    key: 'stopSpeaking',
+    value: function stopSpeaking() {
+      speechSynthesis.pause();
+      this.paused = true;
+      this.speaking = false;
+    }
+  }, {
+    key: 'utteranceEndHandler',
+    value: function utteranceEndHandler(e) {
+      if (this.speaking) {
+        this.currentComment++;
+      }
+    }
+  }, {
+    key: 'nextComment',
+    value: function nextComment() {
+      currentComment++;
+      speakComments(currentComment);
+    }
+  }, {
+    key: 'previousComment',
+    value: function previousComment() {
+      currentComment--;
+      speakComments(currentComment);
+    }
+  }, {
+    key: 'startSpeaking',
+    value: function startSpeaking() {
+      if (this.voices.length && this.contentArray.length) {
+        this.utterances = this.contentToUtterances(this.contentArray);
+      } else {
+        console.log("can't parse");
+      }
+    }
+  }, {
+    key: 'speakComments',
+    value: function speakComments(currentComment) {
+      this.speaking = false;
+      speechSynthesis.cancel();
+      this.speaking = true;
+      if (this.currentComment < 0 || this.currentComment > utterances.length - 1) {
+        console.log('page complete');
+      }
+      for (var i = this.currentComment; i < utterances.length; i++) {
+        this.speakComment(utterances[i]);
+      }
+    }
+  }, {
+    key: 'speakComment',
+    value: function speakComment(utterance) {
+      speechSynthesis.speak(utterance);
+    }
+  }, {
+    key: 'setupKeyboardListeners',
+    value: function setupKeyboardListeners() {
+      document.onkeydown = function (evt) {
+        switch (evt.code) {
+          case "Space":
+            this.togglePause();
+            break;
+          case "ArrowRight":
+            if (this.speaking) {
+              this.nextComment();
+            };
+          case "ArrowLeft":
+            if (this.speaking) {
+              this.previousComment();
+            };
+          default:
+            //console.log(evt.code);
+            break;
+        }
+      }.bind(this);
+    }
+  }, {
+    key: 'setupMessageListeners',
+    value: function setupMessageListeners() {
+      if (typeof chrome !== 'undefined') {
+        chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+          switch (request.message) {
+            case "speak":
+              this.startSpeaking();
+              break;
+            case "stop":
+              this.stopSpeaking();
+              break;
+            case "pause":
+              this.togglePause();
+              break;
+            case "init":
+              console.log('do we need init?');
+              break;
+          }
+        }.bind(this));
+      }
+    }
   }]);
 
   return ForumSpeak;
 }();
 
-var initContent = exports.initContent = function initContent() {
+var initContent = function initContent() {
   var fs = new ForumSpeak();
-  var speaking = false;
-  var paused = false;
-  var canParse = true;
-  var currentComment = 0;
-  var voices = void 0;
-  var entries = document.getElementsByClassName("entry");
-  var posts = [];
-  var utterances = [];
-
-  var returnTrue = function returnTrue() {
-    return true;
-  };
-
-  var parseLinks = function parseLinks(body) {
-    var reg = /<a[\s\S]*?>\n?([\s\S]*?)\n?<\/a>/g;
-    return body.replace(reg, '$1, link posted,');
-  };
-
-  var parseQuotes = function parseQuotes(body) {
-    var reg = /<blockquote[\s\S]*?>\n?([\s\S]*?)\n?<\/blockquote>/g;
-    return body.replace(reg, 'quote!, $1, unquote!,');
-  };
-
-  var parseSpeech = function parseSpeech(body) {
-    var parsed_body = parseLinks(body);
-    return parseQuotes(parsed_body);
-  };
-
-  var findAuthor = function findAuthor(item, i) {
-    var authorEl = item.querySelector('.author');
-    if (authorEl) {
-      var author = authorEl.textContent;
-      var OP = item.querySelector('.submitter');
-      if (OP) {
-        if (i === 0) {
-          var _OP = author;
-          author = "The original poster, " + _OP;
-        } else {
-          author = "OP";
-        }
-      }
-      return author;
-    }
-    return false;
-  };
-
-  var togglePause = function togglePause() {
-    if (paused) {
-      speechSynthesis.resume();
-      paused = false;
-      speaking = true;
-    } else {
-      speechSynthesis.pause();
-      paused = true;
-      speaking = false;
-    }
-  };
-
-  var stopSpeaking = function stopSpeaking() {
-    speechSynthesis.pause();
-    paused = true;
-    speaking = false;
-  };
-
-  var utteranceEndHandler = function utteranceEndHandler(e) {
-    currentComment++;
-  };
-
-  var nextComment = function nextComment() {
-    currentComment++;
-    speakComments(currentComment);
-  };
-
-  var previousComment = function previousComment() {
-    currentComment--;
-    speakComments(currentComment);
-  };
-
-  var findBody = function findBody(item) {
-    var userTextEl = item.querySelector('.usertext-body');
-    var body = '';
-    if (userTextEl) {
-      userTextEl.innerHTML = fs.parseSpeech(userTextEl.innerHTML);
-      body = userTextEl.textContent;
-    }
-    return body;
-  };
-
-  var parseVoices = function parseVoices() {
-    return speechSynthesis.getVoices().filter(function (voice) {
-      return voice.lang === 'en-US' && voice.localService;
-    });
-  };
-
-  var parseContent = function parseContent() {
-    if (!utterances.length) {
-      for (var i = 0; i < entries.length; i++) {
-        var author = findAuthor(entries.item(i), i);
-        if (author) {
-          var body = findBody(entries.item(i));
-          //if author
-          //const post = author + " writes,," + body;
-          var post = " , " + body + " , "; //voice changes reference comment changes
-          posts.push(post);
-          var utterance = new SpeechSynthesisUtterance();
-          utterance.text = post;
-          utterance.rate = 1.5;
-          utterance.pitch = (Math.random() * (0.2 - 1.8) + 1.8).toFixed(4);
-          utterance.voice = voices[i % (voices.length - 1)];
-          utterance.onend = utteranceEndHandler;
-          utterances.push(utterance);
-        }
-      }
-      if (!utterances.length) {
-        canParse = false;
-      }
-    }
-  };
-
-  var speakContent = function speakContent() {
-    if (canParse) {
-      voices = parseVoices();
-      parseContent();
-      speakComments(currentComment);
-    } else {
-      console.log("can't parse");
-    }
-  };
-
-  var speakComments = function speakComments(currentComment) {
-    //loads up queue
-    speechSynthesis.cancel();
-    if (currentComment < 0 || currentComment > utterances.length - 1) {
-      console.log('out of range');
-    } else {
-      for (var i = currentComment; i < utterances.length; i++) {
-        speakComment(i);
-      }
-      speaking = true;
-    }
-  };
-
-  var speakComment = function speakComment(comment) {
-    speechSynthesis.speak(utterances[comment]);
-  };
-
-  var initializeSpeaking = function initializeSpeaking() {
-    currentComment = 0;
-    speechSynthesis.onvoiceschanged = function () {
-      speakContent(currentComment);
-    };
-
-    if (speechSynthesis.getVoices().length) {
-      speakContent(currentComment);
-    }
-  };
-
-  function init() {
-    document.onkeydown = function (evt) {
-      switch (evt.code) {
-        case "Space":
-          togglePause();
-          break;
-        case "ArrowRight":
-          if (speaking) {
-            nextComment();
-          };
-        case "ArrowLeft":
-          if (speaking) {
-            previousComment();
-          };
-        default:
-          //console.log(evt.code);
-          break;
-      }
-    };
-  }
-
-  if (typeof chrome !== 'undefined') {
-    chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-      switch (request.message) {
-        case "speak":
-          initializeSpeaking();
-          break;
-        case "stop":
-          stopSpeaking();
-          break;
-        case "pause":
-          togglePause();
-          break;
-        case "init":
-          init();
-          break;
-      }
-    });
-  }
 };
 
 initContent();
