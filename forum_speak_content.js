@@ -80,10 +80,6 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var returnTrue = exports.returnTrue = function returnTrue() {
-  return true;
-};
-
 var ForumSpeak = exports.ForumSpeak = function () {
   function ForumSpeak() {
     _classCallCheck(this, ForumSpeak);
@@ -122,6 +118,16 @@ var ForumSpeak = exports.ForumSpeak = function () {
         body = userTextEl.textContent.trim();
       }
       return body;
+    }
+  }, {
+    key: 'findAuthor',
+    value: function findAuthor(item, i) {
+      var authorEl = item.querySelector('.author');
+      if (authorEl) {
+        var author = authorEl.textContent.trim();
+        return author;
+      }
+      return false;
     }
   }, {
     key: 'objectifyContent',

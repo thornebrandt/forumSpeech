@@ -32,9 +32,14 @@ describe('forum speak content script?', () => {
     expect(fs.parseSpeech('<blockquote>hey</blockquote>')).toEqual('quote!, hey, unquote!,');
   });
 
-  it('creates fixture comments correctly', () => {
+  it('finds body in comments correctly', () => {
     const comment = fixtures.createComment('foo');
     expect(fs.findBody(comment)).toBe('foo');
+  });
+
+  it('finds author in comments correctly', () => {
+    const comment = fixtures.createComment('foo', 'fakeAuthor');
+    expect(fs.findAuthor(comment)).toBe('fakeAuthor');
   });
 
   it('creates a group of fixture comments correctly', () => {

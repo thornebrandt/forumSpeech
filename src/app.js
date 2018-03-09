@@ -1,7 +1,3 @@
-export const returnTrue = () => {
-  return true;
-}
-
 export class ForumSpeak {
   init(){
     return true;
@@ -31,6 +27,16 @@ export class ForumSpeak {
     }
     return body;
   }
+
+  findAuthor(item, i){
+    const authorEl = item.querySelector('.author');
+    if(authorEl){
+      let author = authorEl.textContent.trim();
+      return author;
+    }
+    return false;
+  }
+
 
   objectifyContent(el){
     const userBodiesEl = el.getElementsByClassName('entry');
