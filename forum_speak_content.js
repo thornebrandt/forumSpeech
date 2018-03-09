@@ -109,6 +109,39 @@ var ForumSpeak = exports.ForumSpeak = function () {
       return this.parseQuotes(parsed_body);
     }
   }, {
+    key: 'parseVoices',
+    value: function parseVoices(voices) {
+      return voices.filter(function (voice) {
+        return voice.lang === 'en-US' && voice.localService;
+      });
+    }
+  }, {
+    key: 'contentToUtterances',
+    value: function contentToUtterances(contentArray) {
+      if (!utterances.length) {
+        for (var i = 0; i < entries.length; i++) {
+          var author = findAuthor(entries.item(i), i);
+          if (author) {
+            var body = findBody(entries.item(i));
+            //if author
+            //const post = author + " writes,," + body;
+            var post = " , " + body + " , "; //voice changes reference comment changes
+            posts.push(post);
+            var utterance = new SpeechSynthesisUtterance();
+            utterance.text = post;
+            utterance.rate = 1.5;
+            utterance.pitch = (Math.random() * (0.2 - 1.8) + 1.8).toFixed(4);
+            utterance.voice = voices[i % (voices.length - 1)];
+            utterance.onend = utteranceEndHandler;
+            utterances.push(utterance);
+          }
+        }
+        if (!utterances.length) {
+          canParse = false;
+        }
+      }
+    }
+  }, {
     key: 'findBody',
     value: function findBody(item) {
       var userTextEl = item.querySelector('.usertext-body');
@@ -130,15 +163,44 @@ var ForumSpeak = exports.ForumSpeak = function () {
       return false;
     }
   }, {
-    key: 'objectifyContent',
-    value: function objectifyContent(el) {
-      var userBodiesEl = el.getElementsByClassName('entry');
-      var userBodies = [].concat(_toConsumableArray(userBodiesEl));
-      var content = [];
-      userBodies.forEach(function (item, i) {
-        content.push(item);
+    key: 'assignVoicesToAuthors',
+    value: function assignVoicesToAuthors(el, voices) {
+      var _this = this;
+
+      var contentEl = el.getElementsByClassName('entry');
+      var content = [].concat(_toConsumableArray(contentEl));
+      var authorObject = {};
+      content.forEach(function (item, i) {
+        var author = _this.findAuthor(item, i);
+        authorObject[author] = authorObject[author] || {
+          voice: voices[i % voices.length],
+          op: i === 0,
+          pitch: _this.getRandomPitch()
+        };
       });
-      return content;
+      return authorObject;
+    }
+  }, {
+    key: 'objectifyContent',
+    value: function objectifyContent(el, voices) {
+      var contentEl = el.getElementsByClassName('entry');
+      var content = [].concat(_toConsumableArray(contentEl));
+      var contentArray = [];
+      content.forEach(function (item, i) {
+        contentArray.push({
+          author: 'a1',
+          comment: 'hello',
+          voice: voices[0],
+          op: true,
+          pitch: 1
+        });
+      });
+      return contentArray;
+    }
+  }, {
+    key: 'getRandomPitch',
+    value: function getRandomPitch() {
+      return (Math.random() * (0.2 - 1.8) + 1.8).toFixed(4);
     }
   }]);
 
@@ -147,7 +209,6 @@ var ForumSpeak = exports.ForumSpeak = function () {
 
 var initContent = exports.initContent = function initContent() {
   var fs = new ForumSpeak();
-
   var speaking = false;
   var paused = false;
   var canParse = true;

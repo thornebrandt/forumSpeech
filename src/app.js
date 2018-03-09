@@ -18,6 +18,36 @@ export class ForumSpeak {
     return this.parseQuotes(parsed_body);
   }
 
+  parseVoices(voices){
+    return voices.filter((voice) => (
+      voice.lang === 'en-US' && voice.localService));
+  };
+
+  contentToUtterances(contentArray){
+    if(!utterances.length) {
+      for(var i = 0; i < entries.length; i++){
+        const author = findAuthor(entries.item(i), i);
+        if(author) {
+          const body = findBody(entries.item(i));
+          //if author
+          //const post = author + " writes,," + body;
+          const post = " , " + body + " , "; //voice changes reference comment changes
+          posts.push(post);
+          const utterance = new SpeechSynthesisUtterance();
+          utterance.text = post;
+          utterance.rate = 1.5;
+          utterance.pitch = (Math.random() * (0.2 - 1.8) + 1.8).toFixed(4)
+          utterance.voice = voices[i % (voices.length - 1)];
+          utterance.onend = utteranceEndHandler;
+          utterances.push(utterance);
+        }
+      }
+      if(!utterances.length){
+        canParse = false;
+      }
+    }
+  };
+
   findBody(item){
     const userTextEl = item.querySelector('.usertext-body');
     let body = '';
@@ -37,22 +67,45 @@ export class ForumSpeak {
     return false;
   }
 
-
-  objectifyContent(el){
-    const userBodiesEl = el.getElementsByClassName('entry');
-    const userBodies = [...userBodiesEl];
-    const content = [];
-    userBodies.forEach((item, i) => {
-      content.push(item);
+  assignVoicesToAuthors(el, voices){
+    const contentEl = el.getElementsByClassName('entry');
+    const content = [...contentEl];
+    const authorObject = {};
+    content.forEach((item, i) => {
+      const author = this.findAuthor(item, i);
+      authorObject[author] = authorObject[author] || {
+        voice: voices[i % voices.length],
+        op: i === 0,
+        pitch: this.getRandomPitch(),
+      }
     });
-    return content;
+    return authorObject;
+  }
+
+  objectifyContent(el, voices){
+    const contentEl = el.getElementsByClassName('entry');
+    const content = [...contentEl];
+    const contentArray = [];
+    content.forEach((item, i) => {
+      contentArray.push({
+        author: 'a1',
+        comment: 'hello',
+        voice: voices[0],
+        op: true,
+        pitch: 1,
+      });
+    });
+    return contentArray;
+  }
+
+  getRandomPitch(){
+    return (Math.random() * (0.2 - 1.8) + 1.8).toFixed(4)
   }
 
 }
 
 export const initContent = () => {
   const fs = new ForumSpeak();
-
   let speaking = false;
   let paused = false;
   let canParse = true;
