@@ -15,12 +15,24 @@ const stopSpeakingHandler = () => {
   sendMessage('stop');
 };
 
+const addListeners = () => {
+  chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+      switch(request.message){
+        case "canParse":
+          break;
+      }
+    }
+  );
+};
+
 const initContent = () => {
   const speakContentBtn = document.getElementById('speakContent');
   const stopBtn = document.getElementById('stopSpeaking');
   speakContentBtn.addEventListener('click', speakContentHandler);
   stopBtn.addEventListener('click', stopSpeakingHandler);
   chrome.tabs.executeScript({ file: 'forum_speak_content.js', allFrames: false });
+  addListeners();
 };
 
 document.addEventListener("DOMContentLoaded", initContent);

@@ -13,12 +13,19 @@ export class ForumSpeak {
   }
 
   initialize(){
+    this.sendMessage("canParse");
     this.setupMessageListeners();
     this.setupKeyboardListeners();
     this.initializeVoices(() => {
       this.voices = this.filterVoices(speechSynthesis.getVoices());
       this.authorsObject = this.assignVoicesToAuthors(document.body, this.voices);
       this.contentArray = this.objectifyContent(document.body, this.authorsObject);
+    });
+  }
+
+  sendMessage(message){
+    chrome.runtime.sendMessage({
+      message
     });
   }
 
@@ -57,7 +64,7 @@ export class ForumSpeak {
     if(!utterances.length) {
       contentArray.forEach((entry, i) => {
         const utterance = new window.SpeechSynthesisUtterance();
-        utterance.text = entry.comment;
+        utterance.text = ' , ' + entry.comment + ' , ';
         utterance.pitch = entry.pitch;
         utterance.voice = entry.voice;
         utterance.rate = this.rate;

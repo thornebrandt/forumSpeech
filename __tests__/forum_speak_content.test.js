@@ -5,7 +5,7 @@ import { voices } from '../__fixtures__/voices.js';
 
 let fs, utteranceEndHandler;
 
-describe('forum speak content script?', () => {
+describe('forum speak content script', () => {
 
   beforeEach(() => {
     fs = new ForumSpeak();
@@ -172,7 +172,6 @@ describe('forum speak content script?', () => {
         pitch: 1,
       }
     ]);
-
   });
 
   it('creates utterances queue from content', () => {
@@ -184,15 +183,12 @@ describe('forum speak content script?', () => {
         pitch: 1,
       }
     ];
-    expect(fs.contentToUtterances(contentArray)[0].voice)
-      .toEqual(voices[0]);
-
+    expect(fs.contentToUtterances(contentArray)[0].text)
+      .toEqual(' , hello , ');
   });
 
 
   it('uses chrome', () => {
     expect(chrome).toBeTruthy();
   });
-
-
 });

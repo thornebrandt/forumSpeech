@@ -101,12 +101,20 @@ var ForumSpeak = exports.ForumSpeak = function () {
     value: function initialize() {
       var _this = this;
 
+      this.sendMessage("canParse");
       this.setupMessageListeners();
       this.setupKeyboardListeners();
       this.initializeVoices(function () {
         _this.voices = _this.filterVoices(speechSynthesis.getVoices());
         _this.authorsObject = _this.assignVoicesToAuthors(document.body, _this.voices);
         _this.contentArray = _this.objectifyContent(document.body, _this.authorsObject);
+      });
+    }
+  }, {
+    key: 'sendMessage',
+    value: function sendMessage(message) {
+      chrome.runtime.sendMessage({
+        message: message
       });
     }
   }, {
@@ -157,7 +165,7 @@ var ForumSpeak = exports.ForumSpeak = function () {
       if (!utterances.length) {
         contentArray.forEach(function (entry, i) {
           var utterance = new window.SpeechSynthesisUtterance();
-          utterance.text = entry.comment;
+          utterance.text = ' , ' + entry.comment + ' , ';
           utterance.pitch = entry.pitch;
           utterance.voice = entry.voice;
           utterance.rate = _this2.rate;
