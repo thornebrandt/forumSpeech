@@ -81,7 +81,7 @@ function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var ForumSpeak = exports.ForumSpeak = function () {
-  function ForumSpeak() {
+  function ForumSpeak(content) {
     _classCallCheck(this, ForumSpeak);
 
     this.rate = 1.4;
@@ -89,7 +89,7 @@ var ForumSpeak = exports.ForumSpeak = function () {
     this.speaking = false;
     this.paused = false;
     this.currentComment = 0;
-    if (this.canParse(document.body)) {
+    if (this.canParse(content)) {
       this.initialize();
     } else {
       this.parseFailHandler();
@@ -101,7 +101,6 @@ var ForumSpeak = exports.ForumSpeak = function () {
     value: function initialize() {
       var _this = this;
 
-      this.sendMessage("canParse");
       this.setupMessageListeners();
       this.setupKeyboardListeners();
       this.initializeVoices(function () {
@@ -120,6 +119,7 @@ var ForumSpeak = exports.ForumSpeak = function () {
   }, {
     key: 'parseFailHandler',
     value: function parseFailHandler() {
+      this.sendMessage('parseFail');
       //send message back to popup to clear interface.
     }
   }, {
@@ -384,7 +384,7 @@ var ForumSpeak = exports.ForumSpeak = function () {
 }();
 
 var initContent = function initContent() {
-  var fs = new ForumSpeak();
+  var fs = new ForumSpeak(document.body);
 };
 
 initContent();

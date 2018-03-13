@@ -3,15 +3,18 @@ import { ForumSpeak } from '../src/app';
 import * as fixtures from '../__fixtures__/reddit.js';
 import { voices } from '../__fixtures__/voices.js';
 
-let fs, utteranceEndHandler;
+
+
+let fs, utteranceEndHandler, redditPage;
+let sendMessageMock;
 
 describe('forum speak content script', () => {
-
   beforeEach(() => {
-    fs = new ForumSpeak();
-    fs.getRandomPitch = () => 1;
-    utteranceEndHandler = jest.fn();
-    fs.utteranceEndHandler = utteranceEndHandler;
+    sendMessageMock = jest.fn();
+    ForumSpeak.prototype.sendMessage = sendMessageMock;
+    const comments = ['hello'];
+    const authors = ['author1'];
+    redditPage = fixtures.createRedditPage(comments, authors);
     window.speechSynthesis = {
       getVoices: () => {
         return voices;
@@ -29,166 +32,178 @@ describe('forum speak content script', () => {
     }
   });
 
-  it('checks if it can parse the page', () => {
-    const comments = ['hello'];
-    const authors = ['author1'];
-    const forum = fixtures.createRedditPage(comments, authors);
-    expect(fs.canParse(forum)).toBeTruthy();
-  });
+  describe('successful parsing of reddit', () => {
+    beforeEach(() => {
+      fs = new ForumSpeak(redditPage);
+      fs.getRandomPitch = () => 1;
+      fs.utteranceEndHandler = jest.fn();
+    });
 
-  it('finds body in comments correctly', () => {
-    const comment = fixtures.createComment('foo');
-    expect(fs.findBody(comment)).toBe('foo');
-  });
+    it('checks if it can parse the page', () => {
+      expect(fs.canParse(redditPage)).toBeTruthy();
+    });
 
-  it('finds author in comments correctly', () => {
-    const comment = fixtures.createComment('foo', 'fakeAuthor');
-    expect(fs.findAuthor(comment)).toBe('fakeAuthor');
-  });
+    it('finds body in comments correctly', () => {
+      const comment = fixtures.createComment('foo');
+      expect(fs.findBody(comment)).toBe('foo');
+    });
 
-  it('has a forumSpeak class', () => {
-    expect(fs).toBeTruthy();
-  });
+    it('finds author in comments correctly', () => {
+      const comment = fixtures.createComment('foo', 'fakeAuthor');
+      expect(fs.findAuthor(comment)).toBe('fakeAuthor');
+    });
 
-  it('parses quotes correctly', () => {
-    expect(fs.parseSpeech('<blockquote>hey</blockquote>')).toEqual('quote!, hey, unquote!,');
-  });
+    it('has a forumSpeak class', () => {
+      expect(fs).toBeTruthy();
+    });
 
-  it('gets voices from the system', () => {
-    expect(speechSynthesis.getVoices()).toBe(voices);
-  });
+    it('parses quotes correctly', () => {
+      expect(fs.parseSpeech('<blockquote>hey</blockquote>')).toEqual('quote!, hey, unquote!,');
+    });
 
-  it('gets parsed english voices from forum speak object', () => {
-    expect(fs.filterVoices(voices)).toEqual([voices[0]]);
-  });
+    it('gets voices from the system', () => {
+      expect(speechSynthesis.getVoices()).toBe(voices);
+    });
 
-  it('assigns a random pitch', () => {
-    expect(fs.getRandomPitch()).toBe(1);
-  });
+    it('gets parsed english voices from forum speak object', () => {
+      expect(fs.filterVoices(voices)).toEqual([voices[0]]);
+    });
 
-  it('creates a map of authors with associated voices', () => {
-    const comments = ['hello', 'world'];
-    const authors = ['author1', 'author2'];
-    const forum = fixtures.createRedditPage(comments, authors);
-    expect(fs.assignVoicesToAuthors(forum, voices)).toEqual({
-      author1: {
-        voice: voices[0],
-        op: true,
-        pitch: 1,
-      },
-      author2: {
-        voice: voices[1],
-        op: false,
-        pitch: 1,
-      }
+    it('assigns a random pitch', () => {
+      expect(fs.getRandomPitch()).toBe(1);
+    });
+
+    it('creates a map of authors with associated voices', () => {
+      const comments = ['hello', 'world'];
+      const authors = ['author1', 'author2'];
+      const forum = fixtures.createRedditPage(comments, authors);
+      expect(fs.assignVoicesToAuthors(forum, voices)).toEqual({
+        author1: {
+          voice: voices[0],
+          op: true,
+          pitch: 1,
+        },
+        author2: {
+          voice: voices[1],
+          op: false,
+          pitch: 1,
+        }
+      });
+    });
+
+    it('cycles through voices correctly', () => {
+      const comments = ['hell', 'low', 'world'];
+      const authors = ['author1', 'author2', 'author3'];
+      const forum = fixtures.createRedditPage(comments, authors);
+      const voices = [
+        "voice1",
+        "voice2",
+      ];
+      expect(fs.assignVoicesToAuthors(forum, voices)).toEqual({
+        author1: {
+          voice: 'voice1',
+          op: true,
+          pitch: 1,
+        },
+        author2: {
+          voice: 'voice2',
+          op: false,
+          pitch: 1,
+        },
+        author3: {
+          voice: 'voice1',
+          op: false,
+          pitch: 1,
+        }
+      });
+    });
+
+    it('does not duplicate authors', () => {
+      const comments = ['hey', 'whatsup', 'nothing'];
+      const authors = ['author1', 'author2', 'author1'];
+      const forum = fixtures.createRedditPage(comments, authors);
+      const voices = [
+        'ghost'
+      ];
+      expect(fs.assignVoicesToAuthors(forum, voices)).toEqual({
+        author1: {
+          voice: 'ghost',
+          op: true,
+          pitch: 1,
+        },
+        author2: {
+          voice: 'ghost',
+          op: false,
+          pitch: 1,
+        }
+      });
+    });
+
+    it('objectifies content correctly', () => {
+      const comments = ['hello'];
+      const authors = ['a1'];
+      const forum = fixtures.createRedditPage(comments, authors);
+      const authorsObject = fs.assignVoicesToAuthors(forum, voices);
+      expect(fs.objectifyContent(forum, authorsObject)).toEqual([
+        {
+          author: 'a1',
+          comment: 'hello',
+          voice: voices[0],
+          op: true,
+          pitch: 1,
+        }
+      ]);
+    });
+
+    it('includes a title', () => {
+      const comments = ['subtitle'];
+      const authors = ['a1'];
+      const title = 'title';
+      const forum = fixtures.createRedditPage(comments, authors, title);
+      const authorsObject = fs.assignVoicesToAuthors(forum, voices);
+      expect(fs.hasTitle(forum)).toBeTruthy();
+
+      expect(fs.objectifyContent(forum, authorsObject)).toEqual([
+        {
+          author: 'a1',
+          comment: 'title',
+          voice: voices[0],
+          op: true,
+          pitch: 1,
+        },
+        {
+          author: 'a1',
+          comment: 'subtitle',
+          voice: voices[0],
+          op: true,
+          pitch: 1,
+        }
+      ]);
+    });
+
+    it('creates utterances queue from content', () => {
+      const contentArray = [
+        {
+          author: 'a1',
+          comment: 'hello',
+          voice: voices[0],
+          pitch: 1,
+        }
+      ];
+      expect(fs.contentToUtterances(contentArray)[0].text)
+        .toEqual(' , hello , ');
+    });
+
+    it('uses chrome', () => {
+      expect(chrome).toBeTruthy();
     });
   });
-
-  it('cycles through voices correctly', () => {
-    const comments = ['hell', 'low', 'world'];
-    const authors = ['author1', 'author2', 'author3'];
-    const forum = fixtures.createRedditPage(comments, authors);
-    const voices = [
-      "voice1",
-      "voice2",
-    ];
-    expect(fs.assignVoicesToAuthors(forum, voices)).toEqual({
-      author1: {
-        voice: 'voice1',
-        op: true,
-        pitch: 1,
-      },
-      author2: {
-        voice: 'voice2',
-        op: false,
-        pitch: 1,
-      },
-      author3: {
-        voice: 'voice1',
-        op: false,
-        pitch: 1,
-      }
+  
+  describe('sad paths', () => {
+    it('sends a parse fail message on incorrect page', () => {
+      const emptyContainer = document.createElement('div');
+      fs = new ForumSpeak(emptyContainer);
+      expect(sendMessageMock.mock.calls[0][0]).toBe('parseFail');
     });
-  });
-
-  it('does not duplicate authors', () => {
-    const comments = ['hey', 'whatsup', 'nothing'];
-    const authors = ['author1', 'author2', 'author1'];
-    const forum = fixtures.createRedditPage(comments, authors);
-    const voices = [
-      'ghost'
-    ];
-    expect(fs.assignVoicesToAuthors(forum, voices)).toEqual({
-      author1: {
-        voice: 'ghost',
-        op: true,
-        pitch: 1,
-      },
-      author2: {
-        voice: 'ghost',
-        op: false,
-        pitch: 1,
-      }
-    });
-  });
-
-  it('objectifies content correctly', () => {
-    const comments = ['hello'];
-    const authors = ['a1'];
-    const forum = fixtures.createRedditPage(comments, authors);
-    const authorsObject = fs.assignVoicesToAuthors(forum, voices);
-    expect(fs.objectifyContent(forum, authorsObject)).toEqual([
-      {
-        author: 'a1',
-        comment: 'hello',
-        voice: voices[0],
-        op: true,
-        pitch: 1,
-      }
-    ]);
-  });
-
-  it('includes a title', () => {
-    const comments = ['subtitle'];
-    const authors = ['a1'];
-    const title = 'title';
-    const forum = fixtures.createRedditPage(comments, authors, title);
-    const authorsObject = fs.assignVoicesToAuthors(forum, voices);
-    expect(fs.hasTitle(forum)).toBeTruthy();
-
-    expect(fs.objectifyContent(forum, authorsObject)).toEqual([
-      {
-        author: 'a1',
-        comment: 'title',
-        voice: voices[0],
-        op: true,
-        pitch: 1,
-      },
-      {
-        author: 'a1',
-        comment: 'subtitle',
-        voice: voices[0],
-        op: true,
-        pitch: 1,
-      }
-    ]);
-  });
-
-  it('creates utterances queue from content', () => {
-    const contentArray = [
-      {
-        author: 'a1',
-        comment: 'hello',
-        voice: voices[0],
-        pitch: 1,
-      }
-    ];
-    expect(fs.contentToUtterances(contentArray)[0].text)
-      .toEqual(' , hello , ');
-  });
-
-
-  it('uses chrome', () => {
-    expect(chrome).toBeTruthy();
   });
 });

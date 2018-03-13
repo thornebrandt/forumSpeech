@@ -1,11 +1,11 @@
 export class ForumSpeak {
-  constructor(){
+  constructor(content){
     this.rate = 1.4;
     this.voices = [];
     this.speaking = false;
     this.paused = false;
     this.currentComment = 0;
-    if(this.canParse(document.body)){
+    if(this.canParse(content)){
       this.initialize();
     } else {
       this.parseFailHandler();
@@ -13,7 +13,6 @@ export class ForumSpeak {
   }
 
   initialize(){
-    this.sendMessage("canParse");
     this.setupMessageListeners();
     this.setupKeyboardListeners();
     this.initializeVoices(() => {
@@ -24,12 +23,15 @@ export class ForumSpeak {
   }
 
   sendMessage(message){
-    chrome.runtime.sendMessage({
-      message
-    });
+    if( typeof(chrome) !== 'undefined' ) {
+      chrome.runtime.sendMessage({
+        message
+      });
+    }
   }
 
   parseFailHandler(){
+    this.sendMessage('parseFail');
     //send message back to popup to clear interface.
   }
 
@@ -260,7 +262,7 @@ export class ForumSpeak {
 }
 
 const initContent = () => {
-  const fs = new ForumSpeak();
+  const fs = new ForumSpeak(document.body);
 };
 
 initContent();
