@@ -4,11 +4,33 @@
     <title>ForumSpeak</title>
     <script src="forum_speak_background.js"></script>
     <script src="forum_speak_popup.js"></script>
+    <style>
+      #main {
+        width: 200px;
+        height: 200px;
+        color: gray;
+      }
+      h1{
+        font-size: 14px;
+      }
+
+      .hidden{
+        display: none;
+      }
+    </style>
+
   </head>
   <body>
-    <h1>Forum Speak</h1>
-    <p>Return to browser and press spacebar to pause.</p>
-    <button id="speakContent">Speak Content</button>
-    <button id="stopSpeaking">Stop Speaking</button>
+    <div id="main">
+      <h1>ForumSpeak</h1>
+      <p id="info">
+        Loading
+      </p>
+      <div id="interface" class="hidden">
+        <p>Return to browser and press spacebar to pause.</p>
+        <button id="speakContent">Speak Content</button>
+        <button id="stopSpeaking">Stop Speaking</button>
+      </div>
+    </div>
   </body>
 </html>

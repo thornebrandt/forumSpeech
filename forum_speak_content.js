@@ -101,20 +101,25 @@ var ForumSpeak = exports.ForumSpeak = function () {
     value: function initialize() {
       var _this = this;
 
+      this.sendMessage('canParse');
       this.setupMessageListeners();
       this.setupKeyboardListeners();
       this.initializeVoices(function () {
         _this.voices = _this.filterVoices(speechSynthesis.getVoices());
         _this.authorsObject = _this.assignVoicesToAuthors(document.body, _this.voices);
         _this.contentArray = _this.objectifyContent(document.body, _this.authorsObject);
+        _this.sendMessage('commentCount', _this.contentArray.length);
       });
     }
   }, {
     key: 'sendMessage',
-    value: function sendMessage(message) {
-      chrome.runtime.sendMessage({
-        message: message
-      });
+    value: function sendMessage(message, data) {
+      if (typeof chrome !== 'undefined') {
+        chrome.runtime.sendMessage({
+          message: message,
+          data: data
+        });
+      }
     }
   }, {
     key: 'parseFailHandler',

@@ -43,6 +43,10 @@ describe('forum speak content script', () => {
       expect(fs.canParse(redditPage)).toBeTruthy();
     });
 
+    it('sends a success message after it decides it can parse', () => {
+      expect(sendMessageMock.mock.calls[0][0]).toBe('canParse');
+    });
+
     it('finds body in comments correctly', () => {
       const comment = fixtures.createComment('foo');
       expect(fs.findBody(comment)).toBe('foo');

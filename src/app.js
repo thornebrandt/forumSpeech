@@ -13,19 +13,22 @@ export class ForumSpeak {
   }
 
   initialize(){
+    this.sendMessage('canParse');
     this.setupMessageListeners();
     this.setupKeyboardListeners();
     this.initializeVoices(() => {
       this.voices = this.filterVoices(speechSynthesis.getVoices());
       this.authorsObject = this.assignVoicesToAuthors(document.body, this.voices);
       this.contentArray = this.objectifyContent(document.body, this.authorsObject);
+      this.sendMessage('commentCount', this.contentArray.length);
     });
   }
 
-  sendMessage(message){
+  sendMessage(message, data){
     if( typeof(chrome) !== 'undefined' ) {
       chrome.runtime.sendMessage({
-        message
+        message,
+        data
       });
     }
   }
