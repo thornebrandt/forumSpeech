@@ -70,61 +70,8 @@ class ForumPopup {
   }
 }
 
-
-// function sendMessage(message){
-//   chrome.tabs.query({currentWindow: true, active: true}, function (tabs){
-//       var activeTab = tabs[0];
-//       chrome.tabs.sendMessage(activeTab.id, {
-//         message
-//       });
-//   });
-// };
-
-// function replaceContent(el, content){
-// }
-
-// function speakContentHandler(){
-//   sendMessage('speak');
-// };
-
-// function stopSpeakingHandler(){
-//   sendMessage('stop');
-// };
-
-// function parseFailHandler(){
-// }
-
-// function messageCountHandler(count){
-//   console.log('messages loaded', count);
-// }
-
-
-// const addListeners = () => {
-//   chrome.runtime.onMessage.addListener(
-//     function(request, sender, sendResponse) {
-//       switch(request.message){
-//         case "messageCount":
-//           messageCountHandler(request.data);
-//           break;
-//         case "parseFail":
-//           parseFailHandler();
-//           break;
-//         case "canParse":
-//           break;
-//       }
-//     }
-//   );
-// };
-
 const initPopup = () => {
   const fp = new ForumPopup();
-
-  // const speakContentBtn = document.getElementById('speakContent');
-  // const stopBtn = document.getElementById('stopSpeaking');
-  // speakContentBtn.addEventListener('click', speakContentHandler);
-  // stopBtn.addEventListener('click', stopSpeakingHandler);
-  // chrome.tabs.executeScript({ file: 'forum_speak_content.js', allFrames: false });
-  // addListeners();
 };
 
 document.addEventListener("DOMContentLoaded", initPopup);

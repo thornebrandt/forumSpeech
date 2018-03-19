@@ -12,9 +12,29 @@ describe('forum speak content script', () => {
   beforeEach(() => {
     sendMessageMock = jest.fn();
     ForumSpeak.prototype.sendMessage = sendMessageMock;
+    const localStorageMock = (function() {
+      let store = {};
+      return {
+        getItem: key => {
+          return store[key] || null;
+        },
+        setItem: (key, value) => {
+          store[key] = value.toString();
+        },
+        clear: () => {
+          store = {};
+        },
+        getStore: () => {
+          return store;
+        }
+      }
+    })();
     const comments = ['hello'];
     const authors = ['author1'];
     redditPage = fixtures.createRedditPage(comments, authors);
+    window.location = {
+      pathname: 'fakePathName',
+    };
     window.speechSynthesis = {
       getVoices: () => {
         return voices;
@@ -30,6 +50,9 @@ describe('forum speak content script', () => {
     window.SpeechSynthesisUtterance = () => {
       return {}
     }
+    Object.defineProperty(window, 'localStorage', {
+      value: localStorageMock
+    });
   });
 
   describe('successful parsing of reddit', () => {
@@ -198,8 +221,14 @@ describe('forum speak content script', () => {
         .toEqual(' , hello , ');
     });
 
-    it('uses chrome', () => {
-      expect(chrome).toBeTruthy();
+    it('local storage mocked correctly', () => {
+      window.localStorage.setItem('foo', 'bar');
+      expect(localStorage.getItem('foo')).toBe('bar');
+    });
+
+    it('has local storage methods', () => {
+      fs.savePosition('foo', 1);
+      expect(fs.getPosition('foo')).toBe(1);
     });
   });
   

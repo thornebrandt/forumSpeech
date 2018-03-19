@@ -262,6 +262,14 @@ export class ForumSpeak {
       )
     }
   }
+
+  savePosition(pathName, position){
+    window.localStorage.setItem('forumSpeak.' + pathName, position);
+  }
+
+  getPosition(pathName){
+    return parseInt(window.localStorage.getItem('forumSpeak.' + pathName));
+  }
 }
 
 const initContent = () => {
