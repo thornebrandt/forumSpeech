@@ -1,9 +1,11 @@
 class ForumPopup {
   constructor(){
-    console.log('constructin');
     this.speakContentBtn = document.getElementById('speakContent');
     this.info = document.getElementById('info');
     this.interface = document.getElementById('interface');
+    this.commentIndicator = document.getElementById('commentIndicator');
+    this.totalComments = document.getElementById('totalComments');
+    this.currentComment = document.getElementById('currentComment');
     this.stopBtn = document.getElementById('stopSpeaking');
     this.speakContentBtn.addEventListener('click', this.speakContentHandler.bind(this));
     this.stopBtn.addEventListener('click', this.stopSpeakingHandler.bind(this));
@@ -30,14 +32,18 @@ class ForumPopup {
 
   hide(el){
     el.style.display = 'none';
+    console.log('hidded', el);
   }
 
   speakContentHandler(){
-    console.log('speak content handler');
+    this.hide(this.speakContentBtn);
+    this.show(this.stopBtn);
     this.sendMessage('speak');
   }
 
   stopSpeakingHandler(){
+    this.hide(this.stopBtn);
+    this.show(this.speakContentBtn);
     this.sendMessage('stop');
   }
 
@@ -47,7 +53,11 @@ class ForumPopup {
 
   commentCountHandler(count){
     this.replaceContent(this.info, 'Found ' + count + ' comments on reddit');
+    this.replaceContent(this.totalComments, count);
+    this.replaceContent(this.currentComment, 0);
     this.show(this.interface);
+    this.hide(this.stopBtn);
+    this.show(this.commentIndicator);
   }
 
   addListeners(){
@@ -56,7 +66,8 @@ class ForumPopup {
         function(request, sender, sendResponse) {
           switch(request.message){
             case "commentCount":
-              this.commentCountHandler(request.data);
+              this.count = request.data;
+              this.commentCountHandler(this.count);
               break;
             case "parseFail":
               this.parseFailHandler();

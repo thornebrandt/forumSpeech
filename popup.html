@@ -2,7 +2,6 @@
 <html>
   <head>
     <title>ForumSpeak</title>
-    <script src="forum_speak_background.js"></script>
     <script src="forum_speak_popup.js"></script>
     <style>
       #main {
@@ -26,9 +25,15 @@
       <p id="info">
         Loading
       </p>
+      <div id="commentIndicator" class="hidden">
+        <strong id="currentComment">2</strong>
+        of <strong id="totalComments">722</strong>
+        <p>Jump to comment
+          <input type="text" id="jumpToComment" />
+        </p>
+      </div>
       <div id="interface" class="hidden">
-        <p>Return to browser and press spacebar to pause.</p>
-        <button id="speakContent">Speak Content</button>
+        <button id="speakContent">Start Speaking</button>
         <button id="stopSpeaking">Stop Speaking</button>
       </div>
     </div>
