@@ -299,6 +299,7 @@ var ForumSpeak = exports.ForumSpeak = function () {
     value: function utteranceEndHandler(e, dude) {
       if (this.speaking) {
         this.currentComment++;
+        this.sendMessage('currentComment', this.currentComment);
       }
     }
   }, {
@@ -382,6 +383,16 @@ var ForumSpeak = exports.ForumSpeak = function () {
           }
         }.bind(this));
       }
+    }
+  }, {
+    key: 'savePosition',
+    value: function savePosition(pathName, position) {
+      window.localStorage.setItem('forumSpeak.' + pathName, position);
+    }
+  }, {
+    key: 'getPosition',
+    value: function getPosition(pathName) {
+      return parseInt(window.localStorage.getItem('forumSpeak.' + pathName));
     }
   }]);
 

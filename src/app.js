@@ -183,6 +183,7 @@ export class ForumSpeak {
   utteranceEndHandler(e, dude){
     if(this.speaking){
       this.currentComment++;
+      this.sendMessage('currentComment', this.currentComment);
     }
   }
 

@@ -1,11 +1,11 @@
 class ForumPopup {
   constructor(){
     this.speakContentBtn = document.getElementById('speakContent');
-    this.info = document.getElementById('info');
+    this.infoEl = document.getElementById('info');
     this.interface = document.getElementById('interface');
-    this.commentIndicator = document.getElementById('commentIndicator');
-    this.totalComments = document.getElementById('totalComments');
-    this.currentComment = document.getElementById('currentComment');
+    this.commentIndicatorEl = document.getElementById('commentIndicator');
+    this.totalCommentsEl = document.getElementById('totalComments');
+    this.currentCommentEl = document.getElementById('currentComment');
     this.stopBtn = document.getElementById('stopSpeaking');
     this.speakContentBtn.addEventListener('click', this.speakContentHandler.bind(this));
     this.stopBtn.addEventListener('click', this.stopSpeakingHandler.bind(this));
@@ -52,12 +52,16 @@ class ForumPopup {
   }
 
   commentCountHandler(count){
-    this.replaceContent(this.info, 'Found ' + count + ' comments on reddit');
-    this.replaceContent(this.totalComments, count);
-    this.replaceContent(this.currentComment, 0);
+    this.replaceContent(this.infoEl, 'Found ' + count + ' comments on reddit');
+    this.replaceContent(this.totalCommentsEl, count);
+    this.replaceContent(this.currentCommentEl, 0);
     this.show(this.interface);
     this.hide(this.stopBtn);
-    this.show(this.commentIndicator);
+    this.show(this.commentIndicatorEl);
+  }
+
+  currentCommentHandler(currentComment){
+    this.replaceContent(this.currentCommentEl, currentComment);
   }
 
   addListeners(){
@@ -65,14 +69,18 @@ class ForumPopup {
       chrome.runtime.onMessage.addListener(
         function(request, sender, sendResponse) {
           switch(request.message){
-            case "commentCount":
+            case 'commentCount':
               this.count = request.data;
               this.commentCountHandler(this.count);
               break;
-            case "parseFail":
+            case 'currentComment':
+              this.currentComment = request.data;
+              this.currentCommentHandler(this.currentComment);
+              break;
+            case 'parseFail':
               this.parseFailHandler();
               break;
-            case "canParse":
+            case 'canParse':
               break;
           }
         }.bind(this)
