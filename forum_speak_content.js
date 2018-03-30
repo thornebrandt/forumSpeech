@@ -101,14 +101,18 @@ var ForumSpeak = exports.ForumSpeak = function () {
     value: function initialize() {
       var _this = this;
 
-      this.sendMessage('canParse');
+      //move to a local storage handler
+      console.log('this.iniotialize', speechSynthesis.speaking);
+      this.sendMessage('canParse', { speaking: speechSynthesis.speaking });
       this.setupMessageListeners();
       this.setupKeyboardListeners();
       this.initializeVoices(function () {
         _this.voices = _this.filterVoices(speechSynthesis.getVoices());
         _this.authorsObject = _this.assignVoicesToAuthors(document.body, _this.voices);
         _this.contentArray = _this.objectifyContent(document.body, _this.authorsObject);
-        _this.sendMessage('commentCount', _this.contentArray.length);
+        _this.sendMessage('commentCount', {
+          count: _this.contentArray.length
+        });
       });
     }
   }, {
@@ -299,7 +303,9 @@ var ForumSpeak = exports.ForumSpeak = function () {
     value: function utteranceEndHandler(e, dude) {
       if (this.speaking) {
         this.currentComment++;
-        this.sendMessage('currentComment', this.currentComment);
+        this.sendMessage('currentComment', {
+          currentComment: this.currentComment
+        });
       }
     }
   }, {

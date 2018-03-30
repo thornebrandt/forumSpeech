@@ -2,7 +2,7 @@ class ForumPopup {
   constructor(){
     this.speakContentBtn = document.getElementById('speakContent');
     this.infoEl = document.getElementById('info');
-    this.interface = document.getElementById('interface');
+    this.interfaceEl = document.getElementById('interface');
     this.commentIndicatorEl = document.getElementById('commentIndicator');
     this.totalCommentsEl = document.getElementById('totalComments');
     this.currentCommentEl = document.getElementById('currentComment');
@@ -32,7 +32,6 @@ class ForumPopup {
 
   hide(el){
     el.style.display = 'none';
-    console.log('hidded', el);
   }
 
   speakContentHandler(){
@@ -55,13 +54,22 @@ class ForumPopup {
     this.replaceContent(this.infoEl, 'Found ' + count + ' comments on reddit');
     this.replaceContent(this.totalCommentsEl, count);
     this.replaceContent(this.currentCommentEl, 0);
-    this.show(this.interface);
-    this.hide(this.stopBtn);
     this.show(this.commentIndicatorEl);
   }
 
   currentCommentHandler(currentComment){
     this.replaceContent(this.currentCommentEl, currentComment);
+  }
+
+  initInterface(speaking){
+    if(speaking){
+      this.hide(this.speakContentBtn);
+      this.show(this.stopBtn);
+    } else {
+      this.hide(this.stopBtn);
+      this.show(this.speakContentBtn);
+    }
+    this.show(this.interfaceEl);
   }
 
   addListeners(){
@@ -70,18 +78,18 @@ class ForumPopup {
         function(request, sender, sendResponse) {
           switch(request.message){
             case 'commentCount':
-              this.count = request.data;
+              this.count = request.data.count;
               this.commentCountHandler(this.count);
               break;
             case 'currentComment':
-              this.currentComment = request.data;
+              this.currentComment = request.data.currentComment;
               this.currentCommentHandler(this.currentComment);
               break;
             case 'parseFail':
               this.parseFailHandler();
               break;
             case 'canParse':
-              break;
+              this.initInterface(request.data.speaking);
           }
         }.bind(this)
       );

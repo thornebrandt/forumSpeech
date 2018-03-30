@@ -13,14 +13,18 @@ export class ForumSpeak {
   }
 
   initialize(){
-    this.sendMessage('canParse');
+    //move to a local storage handler
+    console.log('this.iniotialize', speechSynthesis.speaking);
+    this.sendMessage('canParse', { speaking: speechSynthesis.speaking });
     this.setupMessageListeners();
     this.setupKeyboardListeners();
     this.initializeVoices(() => {
       this.voices = this.filterVoices(speechSynthesis.getVoices());
       this.authorsObject = this.assignVoicesToAuthors(document.body, this.voices);
       this.contentArray = this.objectifyContent(document.body, this.authorsObject);
-      this.sendMessage('commentCount', this.contentArray.length);
+      this.sendMessage('commentCount', {
+        count: this.contentArray.length
+      });
     });
   }
 
@@ -183,7 +187,9 @@ export class ForumSpeak {
   utteranceEndHandler(e, dude){
     if(this.speaking){
       this.currentComment++;
-      this.sendMessage('currentComment', this.currentComment);
+      this.sendMessage('currentComment', {
+        currentComment: this.currentComment
+      });
     }
   }
 
