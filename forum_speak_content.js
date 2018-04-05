@@ -102,7 +102,6 @@ var ForumSpeak = exports.ForumSpeak = function () {
       var _this = this;
 
       //move to a local storage handler
-      console.log('this.iniotialize', speechSynthesis.speaking);
       this.sendMessage('canParse', { speaking: speechSynthesis.speaking });
       this.setupMessageListeners();
       this.setupKeyboardListeners();

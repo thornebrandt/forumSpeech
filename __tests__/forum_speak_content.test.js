@@ -32,9 +32,6 @@ describe('forum speak content script', () => {
     const comments = ['hello'];
     const authors = ['author1'];
     redditPage = fixtures.createRedditPage(comments, authors);
-    window.location = {
-      pathname: 'fakePathName',
-    };
     window.speechSynthesis = {
       getVoices: () => {
         return voices;
@@ -230,6 +227,11 @@ describe('forum speak content script', () => {
       fs.savePosition('foo', 1);
       expect(fs.getPosition('foo')).toBe(1);
     });
+
+    it('brings up test url specified in jest config', () => {
+      expect(window.location.href).toBe('test:');
+    });
+
   });
   
   describe('sad paths', () => {
