@@ -3,8 +3,6 @@ import { ForumSpeak } from '../src/app';
 import * as fixtures from '../__fixtures__/reddit.js';
 import { voices } from '../__fixtures__/voices.js';
 
-
-
 let fs, utteranceEndHandler, redditPage;
 let sendMessageMock;
 
@@ -186,7 +184,6 @@ describe('forum speak content script', () => {
       const forum = fixtures.createRedditPage(comments, authors, title);
       const authorsObject = fs.assignVoicesToAuthors(forum, voices);
       expect(fs.hasTitle(forum)).toBeTruthy();
-
       expect(fs.objectifyContent(forum, authorsObject)).toEqual([
         {
           author: 'a1',
@@ -224,16 +221,29 @@ describe('forum speak content script', () => {
     });
 
     it('has local storage methods', () => {
-      fs.savePosition('foo', 1);
-      expect(fs.getPosition('foo')).toBe(1);
+      fs.savePositionToStorage('foo', 1);
+      expect(fs.getPositionFromStorage('foo')).toBe(1);
     });
 
     it('brings up test url specified in jest config', () => {
       expect(window.location.href).toBe('test:');
     });
 
+    it('saves an item to local storage', () => {
+      fs.savePositionToStorage('foo', 99);
+      expect(localStorage.getItem('fs:foo')).toBe(String(99))
+    });
   });
   
+  describe('local storage initializations', () => {
+    it('gets currentComment from localStorage', () => {
+      localStorage.setItem('fs:test:', 13);
+      fs = new ForumSpeak(redditPage);
+      fs.utteranceEndHandler = jest.fn();
+      expect(fs.currentComment).toBe(13);
+    });
+  });
+
   describe('sad paths', () => {
     it('sends a parse fail message on incorrect page', () => {
       const emptyContainer = document.createElement('div');

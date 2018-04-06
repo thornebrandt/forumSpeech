@@ -88,7 +88,6 @@ var ForumSpeak = exports.ForumSpeak = function () {
     this.voices = [];
     this.speaking = false;
     this.paused = false;
-    this.currentComment = 0;
     if (this.canParse(content)) {
       this.initialize();
     } else {
@@ -109,6 +108,7 @@ var ForumSpeak = exports.ForumSpeak = function () {
         _this.voices = _this.filterVoices(speechSynthesis.getVoices());
         _this.authorsObject = _this.assignVoicesToAuthors(document.body, _this.voices);
         _this.contentArray = _this.objectifyContent(document.body, _this.authorsObject);
+        _this.currentComment = _this.getPositionFromStorage(window.location.href);
         _this.sendMessage('commentCount', {
           count: _this.contentArray.length
         });
@@ -390,14 +390,15 @@ var ForumSpeak = exports.ForumSpeak = function () {
       }
     }
   }, {
-    key: 'savePosition',
-    value: function savePosition(pathName, position) {
-      window.localStorage.setItem('forumSpeak.' + pathName, position);
+    key: 'savePositionToStorage',
+    value: function savePositionToStorage(urlName, position) {
+      window.localStorage.setItem('fs:' + urlName, position);
     }
   }, {
-    key: 'getPosition',
-    value: function getPosition(pathName) {
-      return parseInt(window.localStorage.getItem('forumSpeak.' + pathName));
+    key: 'getPositionFromStorage',
+    value: function getPositionFromStorage(urlName) {
+      var match = window.localStorage.getItem('fs:' + urlName);
+      return match ? parseInt(match) : 0;
     }
   }]);
 

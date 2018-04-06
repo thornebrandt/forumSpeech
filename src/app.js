@@ -4,7 +4,6 @@ export class ForumSpeak {
     this.voices = [];
     this.speaking = false;
     this.paused = false;
-    this.currentComment = 0;
     if(this.canParse(content)){
       this.initialize();
     } else {
@@ -21,6 +20,7 @@ export class ForumSpeak {
       this.voices = this.filterVoices(speechSynthesis.getVoices());
       this.authorsObject = this.assignVoicesToAuthors(document.body, this.voices);
       this.contentArray = this.objectifyContent(document.body, this.authorsObject);
+      this.currentComment = this.getPositionFromStorage(window.location.href);
       this.sendMessage('commentCount', {
         count: this.contentArray.length
       });
@@ -269,12 +269,13 @@ export class ForumSpeak {
     }
   }
 
-  savePosition(pathName, position){
-    window.localStorage.setItem('forumSpeak.' + pathName, position);
+  savePositionToStorage(urlName, position){
+    window.localStorage.setItem('fs:' + urlName, position);
   }
 
-  getPosition(pathName){
-    return parseInt(window.localStorage.getItem('forumSpeak.' + pathName));
+  getPositionFromStorage(urlName){
+    const match = window.localStorage.getItem('fs:' + urlName);
+    return match ? parseInt(match) : 0;
   }
 }
 
