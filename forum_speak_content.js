@@ -376,6 +376,10 @@ var ForumSpeak = exports.ForumSpeak = function () {
       if (typeof chrome !== 'undefined') {
         chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
           switch (request.message) {
+            case "jump":
+              this.currentComment = request.data;
+              this.stopSpeaking();
+              break;
             case "speak":
               this.startSpeaking();
               break;

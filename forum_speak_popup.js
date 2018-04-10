@@ -4,20 +4,21 @@ class ForumPopup {
     this.infoEl = document.getElementById('info');
     this.interfaceEl = document.getElementById('interface');
     this.commentIndicatorEl = document.getElementById('commentIndicator');
+    this.jumpToCommentInput = document.getElementById('jumpToComment');
+    this.jumpToCommentBtn = document.getElementById('jumpToCommentBtn');
     this.totalCommentsEl = document.getElementById('totalComments');
     this.currentCommentEl = document.getElementById('currentComment');
     this.stopBtn = document.getElementById('stopSpeaking');
-    this.speakContentBtn.addEventListener('click', this.speakContentHandler.bind(this));
-    this.stopBtn.addEventListener('click', this.stopSpeakingHandler.bind(this));
     chrome.tabs.executeScript({ file: 'forum_speak_content.js', allFrames: false });
     this.addListeners();
   }
 
-  sendMessage(message){
+  sendMessage(message, data = false){
     chrome.tabs.query({currentWindow: true, active: true}, function (tabs){
         var activeTab = tabs[0];
         chrome.tabs.sendMessage(activeTab.id, {
-          message
+          message,
+          data
         });
     });
   };
@@ -44,6 +45,14 @@ class ForumPopup {
     this.hide(this.stopBtn);
     this.show(this.speakContentBtn);
     this.sendMessage('stop');
+  }
+
+  jumpToCommentHandler(){
+    this.currentComment = Number.parseInt(this.jumpToCommentInput.value);
+    if(this.currentComment || this.currentComment == 0){
+      this.sendMessage('jump', this.currentComment);
+      this.replaceContent(this.currentCommentEl, this.currentComment);
+    }
   }
 
   parseFailHandler(){
@@ -73,6 +82,9 @@ class ForumPopup {
   }
 
   addListeners(){
+    this.speakContentBtn.addEventListener('click', this.speakContentHandler.bind(this));
+    this.stopBtn.addEventListener('click', this.stopSpeakingHandler.bind(this));
+    this.jumpToCommentBtn.addEventListener('click', this.jumpToCommentHandler.bind(this));
     if(typeof chrome !== 'undefined'){
       chrome.runtime.onMessage.addListener(
         function(request, sender, sendResponse) {
