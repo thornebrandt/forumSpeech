@@ -73,12 +73,21 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
+exports.ForumSpeak = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _interface = __webpack_require__(1);
+
+var _interface2 = _interopRequireDefault(_interface);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var fs = void 0;
 
 var ForumSpeak = exports.ForumSpeak = function () {
   function ForumSpeak(content) {
@@ -96,23 +105,36 @@ var ForumSpeak = exports.ForumSpeak = function () {
   }
 
   _createClass(ForumSpeak, [{
+    key: 'createInterface',
+    value: function createInterface() {
+      this.fsi = new _interface2.default();
+    }
+  }, {
     key: 'initialize',
     value: function initialize() {
       var _this = this;
 
       //move to a local storage handler
+      this.createInterface();
       this.sendMessage('canParse', { speaking: speechSynthesis.speaking });
       this.setupMessageListeners();
       this.setupKeyboardListeners();
-      this.initializeVoices(function () {
-        _this.voices = _this.filterVoices(speechSynthesis.getVoices());
-        _this.authorsObject = _this.assignVoicesToAuthors(document.body, _this.voices);
-        _this.contentArray = _this.objectifyContent(document.body, _this.authorsObject);
-        _this.currentComment = _this.getPositionFromStorage(window.location.href);
-        _this.sendMessage('commentCount', {
-          count: _this.contentArray.length
+      this.currentComment = this.getPositionFromStorage(window.location.href);
+      if (!speechSynthesis.speaking && !this.currentComment) {
+        this.initializeVoices(function () {
+          _this.voices = _this.filterVoices(speechSynthesis.getVoices());
+          _this.authorsObject = _this.assignVoicesToAuthors(document.body, _this.voices);
+          _this.contentArray = _this.objectifyContent(document.body, _this.authorsObject);
+          _this.sendMessage('commentCount', {
+            count: _this.contentArray.length
+          });
+          _this.sendMessage('currentComment', {
+            currentComment: _this.currentComment
+          });
         });
-      });
+      } else {
+        console.log('this.contentArray', this.contentArray);
+      }
     }
   }, {
     key: 'sendMessage',
@@ -410,10 +432,63 @@ var ForumSpeak = exports.ForumSpeak = function () {
 }();
 
 var initContent = function initContent() {
-  var fs = new ForumSpeak(document.body);
+  if (!fs) {
+    console.log('no fs', fs);
+    fs = new ForumSpeak(document.body);
+  } else {
+    console.log('fs.currentComment', fs.currentComment);
+  }
 };
 
 initContent();
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var ForumSpeakInterface = function () {
+  function ForumSpeakInterface() {
+    _classCallCheck(this, ForumSpeakInterface);
+
+    this.createEl();
+  }
+
+  _createClass(ForumSpeakInterface, [{
+    key: "createEl",
+    value: function createEl() {
+      var styles = {
+        display: "block",
+        width: "300px",
+        height: "300px",
+        backgroundColor: "white",
+        border: "30px blue solid",
+        position: "fixed",
+        left: "0px",
+        top: "0px",
+        zIndex: "1000"
+      };
+
+      this.fsEl = document.createElement("div");
+      Object.assign(this.fsEl.style, styles);
+      this.fsEl.classList.add('fs');
+    }
+  }]);
+
+  return ForumSpeakInterface;
+}();
+
+exports.default = ForumSpeakInterface;
 
 /***/ })
 /******/ ]);

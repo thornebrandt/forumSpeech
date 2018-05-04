@@ -35,15 +35,23 @@ class ForumPopup {
     el.style.display = 'none';
   }
 
-  speakContentHandler(){
+  showSpeakBtn(){
+    this.hide(this.stopBtn);
+    this.show(this.speakContentBtn);
+  }
+
+  showStopBtn(){
     this.hide(this.speakContentBtn);
     this.show(this.stopBtn);
+  }
+
+  speakContentHandler(){
+    this.showStopBtn();
     this.sendMessage('speak');
   }
 
   stopSpeakingHandler(){
-    this.hide(this.stopBtn);
-    this.show(this.speakContentBtn);
+    this.showSpeakBtn();
     this.sendMessage('stop');
   }
 
@@ -52,6 +60,7 @@ class ForumPopup {
     if(this.currentComment || this.currentComment == 0){
       this.sendMessage('jump', this.currentComment);
       this.replaceContent(this.currentCommentEl, this.currentComment);
+      this.showSpeakBtn();
     }
   }
 

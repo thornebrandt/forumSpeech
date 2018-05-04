@@ -1,3 +1,9 @@
+
+import ForumSpeakInterface from './interface';
+let fs;
+
+
+
 export class ForumSpeak {
   constructor(content){
     this.rate = 1.4;
@@ -11,20 +17,32 @@ export class ForumSpeak {
     }
   }
 
+  createInterface(){
+    this.fsi = new ForumSpeakInterface();
+  }
+
   initialize(){
     //move to a local storage handler
+    this.createInterface();
     this.sendMessage('canParse', { speaking: speechSynthesis.speaking });
     this.setupMessageListeners();
     this.setupKeyboardListeners();
-    this.initializeVoices(() => {
-      this.voices = this.filterVoices(speechSynthesis.getVoices());
-      this.authorsObject = this.assignVoicesToAuthors(document.body, this.voices);
-      this.contentArray = this.objectifyContent(document.body, this.authorsObject);
-      this.currentComment = this.getPositionFromStorage(window.location.href);
-      this.sendMessage('commentCount', {
-        count: this.contentArray.length
+    this.currentComment = this.getPositionFromStorage(window.location.href);
+    if(!speechSynthesis.speaking && !this.currentComment){
+      this.initializeVoices(() => {
+        this.voices = this.filterVoices(speechSynthesis.getVoices());
+        this.authorsObject = this.assignVoicesToAuthors(document.body, this.voices);
+        this.contentArray = this.objectifyContent(document.body, this.authorsObject);
+        this.sendMessage('commentCount', {
+          count: this.contentArray.length
+        });
+        this.sendMessage('currentComment', {
+          currentComment: this.currentComment
+        });
       });
-    });
+    } else {
+      console.log('this.contentArray', this.contentArray);
+    }
   }
 
   sendMessage(message, data){
@@ -284,7 +302,12 @@ export class ForumSpeak {
 }
 
 const initContent = () => {
-  const fs = new ForumSpeak(document.body);
+  if(!fs){
+    console.log('no fs', fs);
+    fs = new ForumSpeak(document.body);
+  } else {
+    console.log('fs.currentComment', fs.currentComment);
+  }
 };
 
 initContent();
