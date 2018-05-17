@@ -1,11 +1,11 @@
-
-import ForumSpeakInterface from './interface';
+import FSInterface from './FSInterface';
+import React from 'react';
+import { render } from 'react-dom';
 let fs;
-
-
 
 export class ForumSpeak {
   constructor(content){
+    console.log('constructing forumSpeak class');
     this.rate = 1.4;
     this.voices = [];
     this.speaking = false;
@@ -17,18 +17,13 @@ export class ForumSpeak {
     }
   }
 
-  createInterface(){
-    this.fsi = new ForumSpeakInterface();
-  }
-
   initialize(){
     //move to a local storage handler
-    this.createInterface();
-    this.sendMessage('canParse', { speaking: speechSynthesis.speaking });
-    this.setupMessageListeners();
-    this.setupKeyboardListeners();
-    this.currentComment = this.getPositionFromStorage(window.location.href);
-    if(!speechSynthesis.speaking && !this.currentComment){
+    const el = document.getElementById('fs');
+    if(!el){
+      this.sendMessage('canParse', { speaking: speechSynthesis.speaking });
+      this.setupMessageListeners();
+      this.currentComment = this.getPositionFromStorage(window.location.href);
       this.initializeVoices(() => {
         this.voices = this.filterVoices(speechSynthesis.getVoices());
         this.authorsObject = this.assignVoicesToAuthors(document.body, this.voices);
@@ -39,9 +34,8 @@ export class ForumSpeak {
         this.sendMessage('currentComment', {
           currentComment: this.currentComment
         });
+        this.createInterface();
       });
-    } else {
-      console.log('this.contentArray', this.contentArray);
     }
   }
 
@@ -84,21 +78,6 @@ export class ForumSpeak {
   filterVoices(voices){
     return voices.filter((voice) => (
       voice.lang === 'en-US' && voice.localService));
-  };
-
-  contentToUtterances(contentArray, utterances = []){
-    if(!utterances.length) {
-      contentArray.forEach((entry, i) => {
-        const utterance = new window.SpeechSynthesisUtterance();
-        utterance.text = ' , ' + entry.comment + ' , ';
-        utterance.pitch = entry.pitch;
-        utterance.voice = entry.voice;
-        utterance.rate = this.rate;
-        utterance.onend = this.utteranceEndHandler.bind(this);
-        utterances.push(utterance);
-      });
-      return utterances;
-    }
   };
 
   findBody(item){
@@ -201,71 +180,32 @@ export class ForumSpeak {
     this.speaking = false;
   }
 
-  utteranceEndHandler(e, dude){
-    if(this.speaking){
-      this.currentComment++;
-      this.sendMessage('currentComment', {
-        currentComment: this.currentComment
-      });
-    }
-  }
-
-  nextComment(){
-    this.currentComment++;
-    this.speakComments(this.currentComment);
-  }
-
   previousComment(){
     this.currentComment--;
     this.speakComments(this.currentComment);
   }
 
-  startSpeaking(){
-    if(this.voices.length && this.contentArray.length){
-      this.utterances = this.contentToUtterances(this.contentArray);
-      this.speakComments(this.currentComment);
-    } else {
-      console.log("can't parse");
-    }
-  }
 
-  speakComments(currentComment){
-    this.speaking = false;
-    speechSynthesis.cancel();
-    this.speaking = true;
-    if(this.currentComment < 0 || this.currentComment > this.utterances.length - 1){
-      console.log('stop handler');
-    } else {
-      for(var i = this.currentComment; i < this.utterances.length; i++){
-        this.speakComment(this.utterances[i]);
-      }
-    }
-  }
-
-  speakComment(utterance){
-    speechSynthesis.speak(utterance);
-  }
-
-  setupKeyboardListeners(){
-    document.onkeydown = function(evt) {
-      switch(evt.code){
-        case "Space":
-          this.togglePause();
-          break;
-        case "ArrowRight":
-          if(this.speaking){
-            this.nextComment();
-          };
-        case "ArrowLeft":
-          if(this.speaking){
-            this.previousComment();
-          };
-        default:
-          //console.log(evt.code);
-          break;
-      }
-    }.bind(this);
-  }
+  // setupKeyboardListeners(){
+  //   document.onkeydown = function(evt) {
+  //     switch(evt.code){
+  //       case "Space":
+  //         this.togglePause();
+  //         break;
+  //       case "ArrowRight":
+  //         if(this.speaking){
+  //           this.nextComment();
+  //         };
+  //       case "ArrowLeft":
+  //         if(this.speaking){
+  //           this.previousComment();
+  //         };
+  //       default:
+  //         //console.log(evt.code);
+  //         break;
+  //     }
+  //   }.bind(this);
+  // }
 
   setupMessageListeners(){
     if( typeof(chrome) !== 'undefined' ) {
@@ -299,11 +239,38 @@ export class ForumSpeak {
     const match = window.localStorage.getItem('fs:' + urlName);
     return match ? parseInt(match) : 0;
   }
+
+  createInterface(){
+    const styles = {
+      display: "block",
+      width: "300px",
+      height: "200px",
+      backgroundColor: "white",
+      border: "1px black solid",
+      position: "fixed",
+      left: "0px",
+      top: "0px",
+      zIndex: "1000",
+    }
+    this.fsEl = document.createElement("div");
+    Object.assign(this.fsEl.style, styles);
+    this.fsEl.id = "fs";
+    document.body.appendChild(this.fsEl);
+    render(
+      <div>
+        <FSInterface
+          contentArray={this.contentArray}
+          currentComment={this.currentComment}
+          rate={this.rate}
+        />
+      </div>,
+      document.getElementById('fs'),
+    );
+  }
 }
 
 const initContent = () => {
   if(!fs){
-    console.log('no fs', fs);
     fs = new ForumSpeak(document.body);
   } else {
     console.log('fs.currentComment', fs.currentComment);
