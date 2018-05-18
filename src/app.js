@@ -1,6 +1,6 @@
 import FSInterface from './FSInterface';
 import React from 'react';
-import { render } from 'react-dom';
+import ReactDOM from 'react-dom';
 let fs;
 
 export class ForumSpeak {
@@ -28,6 +28,7 @@ export class ForumSpeak {
         this.voices = this.filterVoices(speechSynthesis.getVoices());
         this.authorsObject = this.assignVoicesToAuthors(document.body, this.voices);
         this.contentArray = this.objectifyContent(document.body, this.authorsObject);
+        this.addButton(this.contentArray[3].el);
         this.sendMessage('commentCount', {
           count: this.contentArray.length
         });
@@ -139,6 +140,7 @@ export class ForumSpeak {
         contentArray.push({
           author,
           comment: body,
+          el: comment,
           voice: authors[author].voice,
           op: authors[author].op,
           pitch: authors[author].pitch,
@@ -150,12 +152,28 @@ export class ForumSpeak {
       contentArray.unshift({
         author: contentArray[0].author,
         comment: title,
+        el: {},
         voice: contentArray[0].voice,
         op: true,
         pitch: contentArray[0].pitch
       });
     }
     return contentArray;
+  }
+
+  addButton(comment){
+    const btn = document.createElement('a');
+    btn.innerHTML = 'speak';
+    btn.href = '#';
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      this.commentClickHandler();
+    });
+    comment.appendChild(btn);
+  }
+
+  commentClickHandler(){
+    this.fsComponent.externalJumpComment(34);
   }
 
   getRandomPitch(){
@@ -225,6 +243,9 @@ export class ForumSpeak {
             case "pause":
               this.togglePause();
               break;
+            case "testMessage":
+              console.log('wtf');
+              break;
           }
         }.bind(this)
       )
@@ -256,14 +277,12 @@ export class ForumSpeak {
     Object.assign(this.fsEl.style, styles);
     this.fsEl.id = "fs";
     document.body.appendChild(this.fsEl);
-    render(
-      <div>
+    this.fsComponent = ReactDOM.render(
         <FSInterface
           contentArray={this.contentArray}
           currentComment={this.currentComment}
           rate={this.rate}
-        />
-      </div>,
+        />,
       document.getElementById('fs'),
     );
   }

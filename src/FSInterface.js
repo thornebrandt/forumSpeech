@@ -85,13 +85,19 @@ class FSInterface extends React.Component {
 
   incrementComment(){
     this.setState(prevState => ({
-      currentComment: prevState.currentComment + 1
+      currentComment: Number(prevState.currentComment) + 1
     }));
   }
 
   onChangeJumpComment(e){
     this.setState({
       jumpComment: e.target.value,
+    });
+  }
+
+  externalJumpComment(jumpComment){
+    this.setState({
+      currentComment: jumpComment,
     });
   }
 

@@ -893,6 +893,8 @@ var _react2 = _interopRequireDefault(_react);
 
 var _reactDom = __webpack_require__(8);
 
+var _reactDom2 = _interopRequireDefault(_reactDom);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -932,6 +934,7 @@ var ForumSpeak = exports.ForumSpeak = function () {
           _this.voices = _this.filterVoices(speechSynthesis.getVoices());
           _this.authorsObject = _this.assignVoicesToAuthors(document.body, _this.voices);
           _this.contentArray = _this.objectifyContent(document.body, _this.authorsObject);
+          _this.addButton(_this.contentArray[3].el);
           _this.sendMessage('commentCount', {
             count: _this.contentArray.length
           });
@@ -1062,6 +1065,7 @@ var ForumSpeak = exports.ForumSpeak = function () {
           contentArray.push({
             author: author,
             comment: body,
+            el: comment,
             voice: authors[author].voice,
             op: authors[author].op,
             pitch: authors[author].pitch
@@ -1073,12 +1077,32 @@ var ForumSpeak = exports.ForumSpeak = function () {
         contentArray.unshift({
           author: contentArray[0].author,
           comment: title,
+          el: {},
           voice: contentArray[0].voice,
           op: true,
           pitch: contentArray[0].pitch
         });
       }
       return contentArray;
+    }
+  }, {
+    key: 'addButton',
+    value: function addButton(comment) {
+      var _this4 = this;
+
+      var btn = document.createElement('a');
+      btn.innerHTML = 'speak';
+      btn.href = '#';
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        _this4.commentClickHandler();
+      });
+      comment.appendChild(btn);
+    }
+  }, {
+    key: 'commentClickHandler',
+    value: function commentClickHandler() {
+      this.fsComponent.externalJumpComment(34);
     }
   }, {
     key: 'getRandomPitch',
@@ -1152,6 +1176,9 @@ var ForumSpeak = exports.ForumSpeak = function () {
             case "pause":
               this.togglePause();
               break;
+            case "testMessage":
+              console.log('wtf');
+              break;
           }
         }.bind(this));
       }
@@ -1185,15 +1212,11 @@ var ForumSpeak = exports.ForumSpeak = function () {
       Object.assign(this.fsEl.style, styles);
       this.fsEl.id = "fs";
       document.body.appendChild(this.fsEl);
-      (0, _reactDom.render)(_react2.default.createElement(
-        'div',
-        null,
-        _react2.default.createElement(_FSInterface2.default, {
-          contentArray: this.contentArray,
-          currentComment: this.currentComment,
-          rate: this.rate
-        })
-      ), document.getElementById('fs'));
+      this.fsComponent = _reactDom2.default.render(_react2.default.createElement(_FSInterface2.default, {
+        contentArray: this.contentArray,
+        currentComment: this.currentComment,
+        rate: this.rate
+      }), document.getElementById('fs'));
     }
   }]);
 
@@ -1347,7 +1370,7 @@ var FSInterface = function (_React$Component) {
     value: function incrementComment() {
       this.setState(function (prevState) {
         return {
-          currentComment: prevState.currentComment + 1
+          currentComment: Number(prevState.currentComment) + 1
         };
       });
     }
@@ -1356,6 +1379,13 @@ var FSInterface = function (_React$Component) {
     value: function onChangeJumpComment(e) {
       this.setState({
         jumpComment: e.target.value
+      });
+    }
+  }, {
+    key: 'externalJumpComment',
+    value: function externalJumpComment(jumpComment) {
+      this.setState({
+        currentComment: jumpComment
       });
     }
   }, {
