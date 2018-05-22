@@ -203,28 +203,6 @@ export class ForumSpeak {
     this.speakComments(this.currentComment);
   }
 
-
-  // setupKeyboardListeners(){
-  //   document.onkeydown = function(evt) {
-  //     switch(evt.code){
-  //       case "Space":
-  //         this.togglePause();
-  //         break;
-  //       case "ArrowRight":
-  //         if(this.speaking){
-  //           this.nextComment();
-  //         };
-  //       case "ArrowLeft":
-  //         if(this.speaking){
-  //           this.previousComment();
-  //         };
-  //       default:
-  //         //console.log(evt.code);
-  //         break;
-  //     }
-  //   }.bind(this);
-  // }
-
   setupMessageListeners(){
     if( typeof(chrome) !== 'undefined' ) {
       chrome.runtime.onMessage.addListener(

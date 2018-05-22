@@ -1135,28 +1135,6 @@ var ForumSpeak = exports.ForumSpeak = function () {
       this.currentComment--;
       this.speakComments(this.currentComment);
     }
-
-    // setupKeyboardListeners(){
-    //   document.onkeydown = function(evt) {
-    //     switch(evt.code){
-    //       case "Space":
-    //         this.togglePause();
-    //         break;
-    //       case "ArrowRight":
-    //         if(this.speaking){
-    //           this.nextComment();
-    //         };
-    //       case "ArrowLeft":
-    //         if(this.speaking){
-    //           this.previousComment();
-    //         };
-    //       default:
-    //         //console.log(evt.code);
-    //         break;
-    //     }
-    //   }.bind(this);
-    // }
-
   }, {
     key: 'setupMessageListeners',
     value: function setupMessageListeners() {

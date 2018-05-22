@@ -65,14 +65,11 @@ class ForumPopup {
   }
 
   parseFailHandler(){
-    this.replaceContent(this.info, 'Sorry, could not parse this page.');
+    this.replaceContent(this.infoEl, 'Sorry, could not parse this page.');
   }
 
   commentCountHandler(count){
-    this.replaceContent(this.infoEl, 'Found ' + count + ' comments on reddit');
-    this.replaceContent(this.totalCommentsEl, count);
-    this.replaceContent(this.currentCommentEl, 0);
-    this.show(this.commentIndicatorEl);
+    window.close();
   }
 
   currentCommentHandler(currentComment){
