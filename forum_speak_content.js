@@ -997,7 +997,8 @@ var ForumSpeak = exports.ForumSpeak = function () {
   }, {
     key: 'findBody',
     value: function findBody(item) {
-      var userTextEl = item.querySelector('.usertext-body');
+      var el = this.displaySpeech ? item : item.cloneNode(true);
+      var userTextEl = el.querySelector('.usertext-body');
       var body = '';
       if (userTextEl) {
         userTextEl.innerHTML = this.parseSpeech(userTextEl.innerHTML);
@@ -1138,6 +1139,8 @@ var ForumSpeak = exports.ForumSpeak = function () {
   }, {
     key: 'setupMessageListeners',
     value: function setupMessageListeners() {
+      var _this5 = this;
+
       if (typeof chrome !== 'undefined') {
         chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
           switch (request.message) {
@@ -1159,6 +1162,9 @@ var ForumSpeak = exports.ForumSpeak = function () {
               break;
           }
         }.bind(this));
+        window.onbeforeunload = function () {
+          _this5.stopSpeaking();
+        };
       }
     }
   }, {

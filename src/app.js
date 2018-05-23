@@ -82,7 +82,8 @@ export class ForumSpeak {
   };
 
   findBody(item){
-    const userTextEl = item.querySelector('.usertext-body');
+    const el = this.displaySpeech ? item : item.cloneNode(true);
+    const userTextEl = el.querySelector('.usertext-body');
     let body = '';
     if(userTextEl) {
       userTextEl.innerHTML = this.parseSpeech(userTextEl.innerHTML);
@@ -226,7 +227,10 @@ export class ForumSpeak {
               break;
           }
         }.bind(this)
-      )
+      );
+      window.onbeforeunload = () => {
+        this.stopSpeaking();
+      }
     }
   }
 
