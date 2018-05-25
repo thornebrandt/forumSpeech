@@ -3,7 +3,6 @@ import { render } from 'react-dom';
 
 class FSInterface extends React.Component {
   constructor(props){
-    console.log('constrcucing fsIntercComponet');
     super(props);
     this.jumpToComment = this.jumpToComment.bind(this);
     this.onChangeJumpComment = this.onChangeJumpComment.bind(this);
@@ -96,8 +95,11 @@ class FSInterface extends React.Component {
   }
 
   externalJumpComment(jumpComment){
+    speechSynthesis.cancel();
     this.setState({
       currentComment: jumpComment,
+    }, () => {
+      this.startSpeaking();
     });
   }
 

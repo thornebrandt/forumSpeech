@@ -22,13 +22,12 @@ export class ForumSpeak {
     const el = document.getElementById('fs');
     if(!el){
       this.sendMessage('canParse', { speaking: speechSynthesis.speaking });
-      this.setupMessageListeners();
       this.currentComment = this.getPositionFromStorage(window.location.href);
       this.initializeVoices(() => {
         this.voices = this.filterVoices(speechSynthesis.getVoices());
         this.authorsObject = this.assignVoicesToAuthors(document.body, this.voices);
         this.contentArray = this.objectifyContent(document.body, this.authorsObject);
-        this.addButton(this.contentArray[3].el);
+        this.addInlineButtons(this.contentArray);
         this.sendMessage('commentCount', {
           count: this.contentArray.length
         });
@@ -126,8 +125,12 @@ export class ForumSpeak {
     return titleEl.length > 0;
   }
 
-  findTitle(el){
-    return el.querySelectorAll('a.title')[0].textContent.trim();
+  findTitle(container){
+    return container.querySelectorAll('a.title')[0].textContent.trim();
+  }
+
+  findTitleEl(container){
+    return container.querySelectorAll('a.title')[0];
   }
 
   objectifyContent(el, authors){
@@ -153,7 +156,7 @@ export class ForumSpeak {
       contentArray.unshift({
         author: contentArray[0].author,
         comment: title,
-        el: {},
+        el: this.findTitleEl(el),
         voice: contentArray[0].voice,
         op: true,
         pitch: contentArray[0].pitch
@@ -162,19 +165,21 @@ export class ForumSpeak {
     return contentArray;
   }
 
-  addButton(comment){
+  addInlineButtons(contentArray){
+    contentArray.forEach((comment, i) => {
+      this.addInlineButton(comment.el, i);
+    });
+  }
+
+  addInlineButton(comment, i){
     const btn = document.createElement('a');
     btn.innerHTML = 'speak';
     btn.href = '#';
     btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      this.commentClickHandler();
+      e.preventDefault();      
+      this.fsComponent.externalJumpComment(i);
     });
     comment.appendChild(btn);
-  }
-
-  commentClickHandler(){
-    this.fsComponent.externalJumpComment(34);
   }
 
   getRandomPitch(){
@@ -202,36 +207,6 @@ export class ForumSpeak {
   previousComment(){
     this.currentComment--;
     this.speakComments(this.currentComment);
-  }
-
-  setupMessageListeners(){
-    if( typeof(chrome) !== 'undefined' ) {
-      chrome.runtime.onMessage.addListener(
-        function(request, sender, sendResponse) {
-          switch(request.message){
-            case "jump":
-              this.currentComment = request.data;
-              this.stopSpeaking();
-              break;
-            case "speak":
-              this.startSpeaking();
-              break;
-            case "stop":
-              this.stopSpeaking();
-              break;
-            case "pause":
-              this.togglePause();
-              break;
-            case "testMessage":
-              console.log('wtf');
-              break;
-          }
-        }.bind(this)
-      );
-      window.onbeforeunload = () => {
-        this.stopSpeaking();
-      }
-    }
   }
 
   savePositionToStorage(urlName, position){

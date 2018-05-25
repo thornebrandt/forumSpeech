@@ -928,13 +928,12 @@ var ForumSpeak = exports.ForumSpeak = function () {
       var el = document.getElementById('fs');
       if (!el) {
         this.sendMessage('canParse', { speaking: speechSynthesis.speaking });
-        this.setupMessageListeners();
         this.currentComment = this.getPositionFromStorage(window.location.href);
         this.initializeVoices(function () {
           _this.voices = _this.filterVoices(speechSynthesis.getVoices());
           _this.authorsObject = _this.assignVoicesToAuthors(document.body, _this.voices);
           _this.contentArray = _this.objectifyContent(document.body, _this.authorsObject);
-          _this.addButton(_this.contentArray[3].el);
+          _this.addInlineButtons(_this.contentArray);
           _this.sendMessage('commentCount', {
             count: _this.contentArray.length
           });
@@ -1048,8 +1047,13 @@ var ForumSpeak = exports.ForumSpeak = function () {
     }
   }, {
     key: 'findTitle',
-    value: function findTitle(el) {
-      return el.querySelectorAll('a.title')[0].textContent.trim();
+    value: function findTitle(container) {
+      return container.querySelectorAll('a.title')[0].textContent.trim();
+    }
+  }, {
+    key: 'findTitleEl',
+    value: function findTitleEl(container) {
+      return container.querySelectorAll('a.title')[0];
     }
   }, {
     key: 'objectifyContent',
@@ -1078,7 +1082,7 @@ var ForumSpeak = exports.ForumSpeak = function () {
         contentArray.unshift({
           author: contentArray[0].author,
           comment: title,
-          el: {},
+          el: this.findTitleEl(el),
           voice: contentArray[0].voice,
           op: true,
           pitch: contentArray[0].pitch
@@ -1087,23 +1091,27 @@ var ForumSpeak = exports.ForumSpeak = function () {
       return contentArray;
     }
   }, {
-    key: 'addButton',
-    value: function addButton(comment) {
+    key: 'addInlineButtons',
+    value: function addInlineButtons(contentArray) {
       var _this4 = this;
+
+      contentArray.forEach(function (comment, i) {
+        _this4.addInlineButton(comment.el, i);
+      });
+    }
+  }, {
+    key: 'addInlineButton',
+    value: function addInlineButton(comment, i) {
+      var _this5 = this;
 
       var btn = document.createElement('a');
       btn.innerHTML = 'speak';
       btn.href = '#';
       btn.addEventListener('click', function (e) {
         e.preventDefault();
-        _this4.commentClickHandler();
+        _this5.fsComponent.externalJumpComment(i);
       });
       comment.appendChild(btn);
-    }
-  }, {
-    key: 'commentClickHandler',
-    value: function commentClickHandler() {
-      this.fsComponent.externalJumpComment(34);
     }
   }, {
     key: 'getRandomPitch',
@@ -1135,37 +1143,6 @@ var ForumSpeak = exports.ForumSpeak = function () {
     value: function previousComment() {
       this.currentComment--;
       this.speakComments(this.currentComment);
-    }
-  }, {
-    key: 'setupMessageListeners',
-    value: function setupMessageListeners() {
-      var _this5 = this;
-
-      if (typeof chrome !== 'undefined') {
-        chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-          switch (request.message) {
-            case "jump":
-              this.currentComment = request.data;
-              this.stopSpeaking();
-              break;
-            case "speak":
-              this.startSpeaking();
-              break;
-            case "stop":
-              this.stopSpeaking();
-              break;
-            case "pause":
-              this.togglePause();
-              break;
-            case "testMessage":
-              console.log('wtf');
-              break;
-          }
-        }.bind(this));
-        window.onbeforeunload = function () {
-          _this5.stopSpeaking();
-        };
-      }
     }
   }, {
     key: 'savePositionToStorage',
@@ -1249,8 +1226,6 @@ var FSInterface = function (_React$Component) {
 
   function FSInterface(props) {
     _classCallCheck(this, FSInterface);
-
-    console.log('constrcucing fsIntercComponet');
 
     var _this = _possibleConstructorReturn(this, (FSInterface.__proto__ || Object.getPrototypeOf(FSInterface)).call(this, props));
 
@@ -1368,8 +1343,13 @@ var FSInterface = function (_React$Component) {
   }, {
     key: 'externalJumpComment',
     value: function externalJumpComment(jumpComment) {
+      var _this4 = this;
+
+      speechSynthesis.cancel();
       this.setState({
         currentComment: jumpComment
+      }, function () {
+        _this4.startSpeaking();
       });
     }
   }, {
