@@ -61,10 +61,6 @@ describe('forum speak content script', () => {
       expect(fs.canParse(redditPage)).toBeTruthy();
     });
 
-    it('sends a success message after it decides it can parse', () => {
-      expect(sendMessageMock.mock.calls[0][0]).toBe('canParse');
-    });
-
     it('finds body in comments correctly', () => {
       const comment = fixtures.createComment('foo');
       expect(fs.findBody(comment)).toBe('foo');
@@ -165,11 +161,13 @@ describe('forum speak content script', () => {
       const comments = ['hello'];
       const authors = ['a1'];
       const forum = fixtures.createRedditPage(comments, authors);
+      const el = forum.getElementsByClassName("entry")[0];
       const authorsObject = fs.assignVoicesToAuthors(forum, voices);
       expect(fs.objectifyContent(forum, authorsObject)).toEqual([
         {
           author: 'a1',
           comment: 'hello',
+          el: el,
           voice: voices[0],
           op: true,
           pitch: 1,
@@ -182,12 +180,15 @@ describe('forum speak content script', () => {
       const authors = ['a1'];
       const title = 'title';
       const forum = fixtures.createRedditPage(comments, authors, title);
+      const elTitle = forum.getElementsByClassName("title")[1];
+      const el = forum.getElementsByClassName("entry")[0];
       const authorsObject = fs.assignVoicesToAuthors(forum, voices);
       expect(fs.hasTitle(forum)).toBeTruthy();
       expect(fs.objectifyContent(forum, authorsObject)).toEqual([
         {
           author: 'a1',
           comment: 'title',
+          el: elTitle,
           voice: voices[0],
           op: true,
           pitch: 1,
@@ -195,6 +196,7 @@ describe('forum speak content script', () => {
         {
           author: 'a1',
           comment: 'subtitle',
+          el: el,
           voice: voices[0],
           op: true,
           pitch: 1,
@@ -202,7 +204,8 @@ describe('forum speak content script', () => {
       ]);
     });
 
-    it('creates utterances queue from content', () => {
+    xit('creates utterances queue from content', () => {
+      //TODO - move to react interface test
       const contentArray = [
         {
           author: 'a1',
@@ -236,7 +239,8 @@ describe('forum speak content script', () => {
   });
   
   describe('local storage initializations', () => {
-    it('gets currentComment from localStorage', () => {
+    //TODO = move to react interface test
+    xit('gets currentComment from localStorage', () => {
       localStorage.setItem('fs:test:', 13);
       fs = new ForumSpeak(redditPage);
       fs.utteranceEndHandler = jest.fn();

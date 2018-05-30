@@ -5,7 +5,6 @@ let fs;
 
 export class ForumSpeak {
   constructor(content){
-    console.log('constructing forumSpeak class');
     this.rate = 1.4;
     this.voices = [];
     this.speaking = false;
