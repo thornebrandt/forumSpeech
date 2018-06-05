@@ -239,8 +239,7 @@ describe('forum speak content script', () => {
   });
   
   describe('local storage initializations', () => {
-    //TODO = move to react interface test
-    xit('gets currentComment from localStorage', () => {
+    fit('gets currentComment from localStorage', () => {
       localStorage.setItem('fs:test:', 13);
       fs = new ForumSpeak(redditPage);
       fs.utteranceEndHandler = jest.fn();

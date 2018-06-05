@@ -80,12 +80,15 @@ class FSInterface extends React.Component {
     if(this.state.speaking){
       this.incrementComment();
     }
+    this.savePositionToStorage();
   }
 
   incrementComment(){
     this.setState(prevState => ({
       currentComment: Number(prevState.currentComment) + 1
-    }));
+    }), () => {
+      this.savePositionToStorage(window.location.href, this.state.currentComment);
+    });
   }
 
   onChangeJumpComment(e){
@@ -100,13 +103,20 @@ class FSInterface extends React.Component {
       currentComment: jumpComment,
     }, () => {
       this.startSpeaking();
+      this.savePositionToStorage(window.location.href, this.state.currentComment);
     });
   }
 
   jumpToComment(){
     this.setState(prevState => ({
       currentComment: prevState.jumpComment,
-    }));
+    }), () => {
+      this.savePositionToStorage(window.location.href, this.state.currentComment);
+    });
+  }
+
+  savePositionToStorage(urlName, position){
+    window.localStorage.setItem('fs:' + urlName, position);
   }
 
   render(){
