@@ -15,7 +15,19 @@ describe("FSInterface", () => {
       comment: 'hello',
       voice: voices[0],
       pitch: 1,
-    }
+    },
+    {
+      author: 'a2',
+      comment: 'goodbye',
+      voice: voices[1],
+      pitch: 1,
+    },
+    {
+      author: 'a1',
+      comment: 'world',
+      voice: voices[0],
+      pitch: 1,
+    },
   ];
 
   beforeEach(() => {
@@ -80,15 +92,16 @@ describe("FSInterface", () => {
         comment: 'hello',
         voice: voices[0],
         pitch: 1,
-      }
+      },
     ];
     expect(fsComponent.instance().contentToUtterances(contentArray)[0].text)
       .toEqual(' , hello , ');
   });
 
   it('saves an item to local storage', () => {
-    fsComponent.instance().savePositionToStorage('foo', 99);
-    expect(localStorage.getItem('fs:foo')).toBe("99");
+    fsComponent.instance().state.currentComment = 99;
+    fsComponent.instance().savePositionToStorage();
+    expect(localStorage.getItem('fs:test:')).toBe("99");
   });
 
   it('increments a comment', () => {
@@ -97,6 +110,7 @@ describe("FSInterface", () => {
   });
 
   it('incrementing a comment updates localStorage', () => {
+    fsComponent.instance().state.totalComments = 20;
     fsComponent.instance().state.currentComment = 9;
     fsComponent.instance().incrementComment();
     expect(localStorage.getItem('fs:test:')).toBe("10");
@@ -109,7 +123,15 @@ describe("FSInterface", () => {
   });
 
   it('saves external jumped comment to localStorage', () => {
-    fsComponent.instance().externalJumpComment(5);
-    expect(localStorage.getItem('fs:test:')).toBe("5");
+    fsComponent.instance().externalJumpComment(2);
+    expect(localStorage.getItem('fs:test:')).toBe("2");
+  });
+
+  it('stops comments when reaching the end', () => {
+    const totalComments = fsComponent.instance().state.totalComments;
+    fsComponent.instance().state.currentComment = totalComments;
+    fsComponent.instance().speakComments();
+    expect(fsComponent.instance().state.speaking).toBe(false);
+    expect(fsComponent.instance().state.currentComment).toBe(0);
   });
 });

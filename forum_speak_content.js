@@ -895,6 +895,10 @@ var _reactDom = __webpack_require__(8);
 
 var _reactDom2 = _interopRequireDefault(_reactDom);
 
+var _Draggable = __webpack_require__(26);
+
+var _Draggable2 = _interopRequireDefault(_Draggable);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -907,7 +911,6 @@ var ForumSpeak = exports.ForumSpeak = function () {
   function ForumSpeak(content) {
     _classCallCheck(this, ForumSpeak);
 
-    console.log('constructing forumSpeak class');
     this.rate = 1.4;
     this.voices = [];
     this.speaking = false;
@@ -1119,37 +1122,6 @@ var ForumSpeak = exports.ForumSpeak = function () {
       return (Math.random() * (0.3 - 1.7) + 1.7).toFixed(4);
     }
   }, {
-    key: 'togglePause',
-    value: function togglePause() {
-      if (this.paused) {
-        speechSynthesis.resume();
-        this.paused = false;
-        this.speaking = true;
-      } else {
-        speechSynthesis.pause();
-        this.paused = true;
-        this.speaking = false;
-      }
-    }
-  }, {
-    key: 'stopSpeaking',
-    value: function stopSpeaking() {
-      speechSynthesis.pause();
-      this.paused = true;
-      this.speaking = false;
-    }
-  }, {
-    key: 'previousComment',
-    value: function previousComment() {
-      this.currentComment--;
-      this.speakComments(this.currentComment);
-    }
-  }, {
-    key: 'savePositionToStorage',
-    value: function savePositionToStorage(urlName, position) {
-      window.localStorage.setItem('fs:' + urlName, position);
-    }
-  }, {
     key: 'getPositionFromStorage',
     value: function getPositionFromStorage(urlName) {
       var match = window.localStorage.getItem('fs:' + urlName);
@@ -1160,10 +1132,12 @@ var ForumSpeak = exports.ForumSpeak = function () {
     value: function createInterface() {
       var styles = {
         display: "block",
-        width: "300px",
-        height: "200px",
+        width: "250px",
+        height: "40px",
         backgroundColor: "white",
         border: "1px black solid",
+        borderRadius: '10px',
+        padding: '10px',
         position: "fixed",
         left: "0px",
         top: "0px",
@@ -1178,6 +1152,7 @@ var ForumSpeak = exports.ForumSpeak = function () {
         currentComment: this.currentComment,
         rate: this.rate
       }), document.getElementById('fs'));
+      new _Draggable2.default(this.fsEl);
     }
   }]);
 
@@ -1268,7 +1243,7 @@ var FSInterface = function (_React$Component) {
     key: 'stopSpeaking',
     value: function stopSpeaking() {
       speechSynthesis.cancel();
-      this.setState(function (preState) {
+      this.setState(function (prevState) {
         return {
           paused: true,
           speaking: false
@@ -1279,14 +1254,15 @@ var FSInterface = function (_React$Component) {
     key: 'speakComments',
     value: function speakComments() {
       speechSynthesis.cancel();
-      this.setState(function (prevState) {
-        return {
-          speaking: true
-        };
-      });
       if (this.state.currentComment < 0 || this.state.currentComment > this.state.utterances.length - 1) {
-        console.log('stop handler');
+        this.setState({
+          currentComment: 0,
+          speaking: false
+        });
       } else {
+        this.setState({
+          speaking: true
+        });
         for (var i = this.state.currentComment; i < this.state.utterances.length; i++) {
           this.speakComment(this.state.utterances[i]);
         }
@@ -1323,14 +1299,19 @@ var FSInterface = function (_React$Component) {
       if (this.state.speaking) {
         this.incrementComment();
       }
+      this.savePositionToStorage();
     }
   }, {
     key: 'incrementComment',
     value: function incrementComment() {
+      var _this4 = this;
+
       this.setState(function (prevState) {
         return {
           currentComment: Number(prevState.currentComment) + 1
         };
+      }, function () {
+        _this4.savePositionToStorage();
       });
     }
   }, {
@@ -1343,23 +1324,33 @@ var FSInterface = function (_React$Component) {
   }, {
     key: 'externalJumpComment',
     value: function externalJumpComment(jumpComment) {
-      var _this4 = this;
+      var _this5 = this;
 
       speechSynthesis.cancel();
       this.setState({
         currentComment: jumpComment
       }, function () {
-        _this4.startSpeaking();
+        _this5.startSpeaking();
+        _this5.savePositionToStorage();
       });
     }
   }, {
     key: 'jumpToComment',
     value: function jumpToComment() {
+      var _this6 = this;
+
       this.setState(function (prevState) {
         return {
           currentComment: prevState.jumpComment
         };
+      }, function () {
+        _this6.savePositionToStorage();
       });
+    }
+  }, {
+    key: 'savePositionToStorage',
+    value: function savePositionToStorage() {
+      window.localStorage.setItem('fs:' + window.location.href, this.state.currentComment);
     }
   }, {
     key: 'render',
@@ -1422,7 +1413,7 @@ var FSInterface = function (_React$Component) {
               id: 'stopSpeaking',
               onClick: this.stopSpeaking
             },
-            'Stop Speaking'
+            'Stop Speech'
           )
         ),
         this.state.hello
@@ -8385,6 +8376,154 @@ function camelize(string) {
 }
 
 module.exports = camelize;
+
+/***/ }),
+/* 26 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+!function (t, e) {
+  "object" == ( false ? "undefined" : _typeof(exports)) ? module.exports = e() :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (e),
+				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__)) : t.Draggable = e();
+}(undefined, function () {
+  "use strict";
+  var t = { grid: 0, filterTarget: null, limit: { x: null, y: null }, threshold: 0, setCursor: !1, setPosition: !0, smoothDrag: !0, useGPU: !0, onDrag: u, onDragStart: u, onDragEnd: u },
+      e = { transform: function () {
+      for (var t = " -o- -ms- -moz- -webkit-".split(" "), e = document.body.style, n = t.length; n--;) {
+        var o = t[n] + "transform";if (o in e) return o;
+      }
+    }() },
+      n = { assign: function assign() {
+      for (var t = arguments[0], e = arguments.length, n = 1; n < e; n++) {
+        var o = arguments[n];for (var i in o) {
+          t[i] = o[i];
+        }
+      }return t;
+    }, bind: function bind(t, e) {
+      return function () {
+        t.apply(e, arguments);
+      };
+    }, on: function on(t, e, o) {
+      if (e && o) n.addEvent(t, e, o);else if (e) for (var i in e) {
+        n.addEvent(t, i, e[i]);
+      }
+    }, off: function off(t, e, o) {
+      if (e && o) n.removeEvent(t, e, o);else if (e) for (var i in e) {
+        n.removeEvent(t, i, e[i]);
+      }
+    }, limit: function limit(t, e) {
+      return e instanceof Array ? t < (e = [+e[0], +e[1]])[0] ? t = e[0] : t > e[1] && (t = e[1]) : t = +e, t;
+    }, addEvent: "attachEvent" in Element.prototype ? function (t, e, n) {
+      t.attachEvent("on" + e, n);
+    } : function (t, e, n) {
+      t.addEventListener(e, n, !1);
+    }, removeEvent: "attachEvent" in Element.prototype ? function (t, e, n) {
+      t.detachEvent("on" + e, n);
+    } : function (t, e, n) {
+      t.removeEventListener(e, n);
+    } };function o(e, o) {
+    var i = this,
+        r = n.bind(i.start, i),
+        s = n.bind(i.drag, i),
+        u = n.bind(i.stop, i);if (!a(e)) throw new TypeError("Draggable expects argument 0 to be an Element");o = n.assign({}, t, o), n.assign(i, { element: e, handle: o.handle && a(o.handle) ? o.handle : e, handlers: { start: { mousedown: r, touchstart: r }, move: { mousemove: s, mouseup: u, touchmove: s, touchend: u } }, options: o }), i.initialize();
+  }function i(t) {
+    return parseInt(t, 10);
+  }function r(t) {
+    return "currentStyle" in t ? t.currentStyle : getComputedStyle(t);
+  }function s(t) {
+    return null != t;
+  }function a(t) {
+    return t instanceof Element || "undefined" != typeof HTMLDocument && t instanceof HTMLDocument;
+  }function u() {}return n.assign(o.prototype, { setOption: function setOption(t, e) {
+      var n = this;return n.options[t] = e, n.initialize(), n;
+    }, get: function get() {
+      var t = this.dragEvent;return { x: t.x, y: t.y };
+    }, set: function set(t, e) {
+      var n = this.dragEvent;return n.original = { x: n.x, y: n.y }, this.move(t, e), this;
+    }, dragEvent: { started: !1, x: 0, y: 0 }, initialize: function initialize() {
+      var t,
+          o = this,
+          i = o.element,
+          s = (o.handle, i.style),
+          a = r(i),
+          u = o.options,
+          f = e.transform,
+          l = o._dimensions = { height: i.offsetHeight, left: i.offsetLeft, top: i.offsetTop, width: i.offsetWidth };u.useGPU && f && ("none" === (t = a[f]) && (t = ""), s[f] = t + " translate3d(0,0,0)"), u.setPosition && (s.display = "block", s.left = l.left + "px", s.top = l.top + "px", s.width = l.width + "px", s.height = l.height + "px", s.bottom = s.right = "auto", s.margin = 0, s.position = "absolute"), u.setCursor && (s.cursor = "move"), o.setLimit(u.limit), n.assign(o.dragEvent, { x: l.left, y: l.top }), n.on(o.handle, o.handlers.start);
+    }, start: function start(t) {
+      var e = this,
+          o = e.getCursor(t),
+          i = e.element;e.useTarget(t.target || t.srcElement) && (t.preventDefault && !t.target.getAttribute("contenteditable") ? t.preventDefault() : t.target.getAttribute("contenteditable") || (t.returnValue = !1), e.dragEvent.oldZindex = i.style.zIndex, i.style.zIndex = 1e4, e.setCursor(o), e.setPosition(), e.setZoom(), n.on(document, e.handlers.move));
+    }, drag: function drag(t) {
+      var e = this,
+          n = e.dragEvent,
+          o = e.element,
+          i = e._cursor,
+          r = e._dimensions,
+          s = e.options,
+          a = r.zoom,
+          u = e.getCursor(t),
+          f = s.threshold,
+          l = (u.x - i.x) / a + r.left,
+          d = (u.y - i.y) / a + r.top;!n.started && f && Math.abs(i.x - u.x) < f && Math.abs(i.y - u.y) < f || (n.original || (n.original = { x: l, y: d }), n.started || (s.onDragStart(o, l, d, t), n.started = !0), e.move(l, d) && s.onDrag(o, n.x, n.y, t));
+    }, move: function move(t, e) {
+      var n = this,
+          o = n.dragEvent,
+          i = n.options,
+          r = i.grid,
+          s = n.element.style,
+          a = n.limit(t, e, o.original.x, o.original.y);return !i.smoothDrag && r && (a = n.round(a, r)), (a.x !== o.x || a.y !== o.y) && (o.x = a.x, o.y = a.y, s.left = a.x + "px", s.top = a.y + "px", !0);
+    }, stop: function stop(t) {
+      var e,
+          o = this,
+          i = o.dragEvent,
+          r = o.element,
+          s = o.options,
+          a = s.grid;n.off(document, o.handlers.move), r.style.zIndex = i.oldZindex, s.smoothDrag && a && (e = o.round({ x: i.x, y: i.y }, a), o.move(e.x, e.y), n.assign(o.dragEvent, e)), o.dragEvent.started && s.onDragEnd(r, i.x, i.y, t), o.reset();
+    }, reset: function reset() {
+      this.dragEvent.started = !1;
+    }, round: function round(t) {
+      var e = this.options.grid;return { x: e * Math.round(t.x / e), y: e * Math.round(t.y / e) };
+    }, getCursor: function getCursor(t) {
+      return { x: (t.targetTouches ? t.targetTouches[0] : t).clientX, y: (t.targetTouches ? t.targetTouches[0] : t).clientY };
+    }, setCursor: function setCursor(t) {
+      this._cursor = t;
+    }, setLimit: function setLimit(t) {
+      var e = this,
+          o = function o(t, e) {
+        return { x: t, y: e };
+      };if (t instanceof Function) e.limit = t;else if (a(t)) {
+        var i = e._dimensions,
+            r = t.scrollHeight - i.height,
+            u = t.scrollWidth - i.width;e.limit = function (t, e) {
+          return { x: n.limit(t, [0, u]), y: n.limit(e, [0, r]) };
+        };
+      } else if (t) {
+        var f = s(t.x),
+            l = s(t.y);e.limit = f || l ? function (e, o) {
+          return { x: f ? n.limit(e, t.x) : e, y: l ? n.limit(o, t.y) : o };
+        } : o;
+      } else e.limit = o;
+    }, setPosition: function setPosition() {
+      var t = this.element,
+          e = t.style;n.assign(this._dimensions, { left: i(e.left) || t.offsetLeft, top: i(e.top) || t.offsetTop });
+    }, setZoom: function setZoom() {
+      for (var t = this.element, e = 1; t = t.offsetParent;) {
+        var n = r(t).zoom;if (n && "normal" !== n) {
+          e = n;break;
+        }
+      }this._dimensions.zoom = e;
+    }, useTarget: function useTarget(t) {
+      var e = this.options.filterTarget;return !(e instanceof Function) || e(t);
+    }, destroy: function destroy() {
+      n.off(this.handle, this.handlers.start), n.off(document, this.handlers.move);
+    } }), o;
+});
 
 /***/ })
 /******/ ]);

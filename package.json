@@ -17,6 +17,7 @@
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-react": "^6.24.1",
     "chrome-jest-mock": "^1.0.2",
+    "draggable": "^4.2.0",
     "jest": "^22.3.0",
     "react": "^16.3.2",
     "react-dom": "^16.3.2",

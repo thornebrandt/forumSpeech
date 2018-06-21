@@ -1,6 +1,7 @@
 import FSInterface from './FSInterface';
 import React from 'react';
 import ReactDOM from 'react-dom';
+import Draggable from 'Draggable';
 let fs;
 
 export class ForumSpeak {
@@ -175,7 +176,7 @@ export class ForumSpeak {
     btn.innerHTML = 'speak';
     btn.href = '#';
     btn.addEventListener('click', (e) => {
-      e.preventDefault();      
+      e.preventDefault();
       this.fsComponent.externalJumpComment(i);
     });
     comment.appendChild(btn);
@@ -183,33 +184,6 @@ export class ForumSpeak {
 
   getRandomPitch(){
     return (Math.random() * (0.3 - 1.7) + 1.7).toFixed(4)
-  }
-
-  togglePause(){
-    if(this.paused){
-      speechSynthesis.resume();
-      this.paused = false;
-      this.speaking = true;
-    } else {
-      speechSynthesis.pause();
-      this.paused = true;
-      this.speaking = false;
-    }
-  }
-
-  stopSpeaking(){
-    speechSynthesis.pause();
-    this.paused = true;
-    this.speaking = false;
-  }
-
-  previousComment(){
-    this.currentComment--;
-    this.speakComments(this.currentComment);
-  }
-
-  savePositionToStorage(urlName, position){
-    window.localStorage.setItem('fs:' + urlName, position);
   }
 
   getPositionFromStorage(urlName){
@@ -220,10 +194,12 @@ export class ForumSpeak {
   createInterface(){
     const styles = {
       display: "block",
-      width: "300px",
-      height: "200px",
+      width: "250px",
+      height: "40px",
       backgroundColor: "white",
       border: "1px black solid",
+      borderRadius: '10px',
+      padding: '10px',
       position: "fixed",
       left: "0px",
       top: "0px",
@@ -241,7 +217,8 @@ export class ForumSpeak {
         />,
       document.getElementById('fs'),
     );
-  }
+    new Draggable(this.fsEl); 
+  } 
 }
 
 const initContent = () => {

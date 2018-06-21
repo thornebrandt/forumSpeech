@@ -37,7 +37,7 @@ class FSInterface extends React.Component {
 
   stopSpeaking(){
     speechSynthesis.cancel();
-    this.setState(preState => ({
+    this.setState(prevState => ({
       paused: true,
       speaking: false,
     }));
@@ -45,12 +45,15 @@ class FSInterface extends React.Component {
 
   speakComments(){
     speechSynthesis.cancel();
-    this.setState(prevState => ({
-      speaking: true,
-    }));
     if(this.state.currentComment < 0 || this.state.currentComment > this.state.utterances.length - 1){
-      console.log('stop handler');
+      this.setState({
+        currentComment: 0,
+        speaking: false,
+      });
     } else {
+      this.setState({
+        speaking: true,
+      });
       for(var i = this.state.currentComment; i < this.state.utterances.length; i++){
         this.speakComment(this.state.utterances[i]);
       }
@@ -87,7 +90,7 @@ class FSInterface extends React.Component {
     this.setState(prevState => ({
       currentComment: Number(prevState.currentComment) + 1
     }), () => {
-      this.savePositionToStorage(window.location.href, this.state.currentComment);
+      this.savePositionToStorage();
     });
   }
 
@@ -103,7 +106,7 @@ class FSInterface extends React.Component {
       currentComment: jumpComment,
     }, () => {
       this.startSpeaking();
-      this.savePositionToStorage(window.location.href, this.state.currentComment);
+      this.savePositionToStorage();
     });
   }
 
@@ -111,12 +114,15 @@ class FSInterface extends React.Component {
     this.setState(prevState => ({
       currentComment: prevState.jumpComment,
     }), () => {
-      this.savePositionToStorage(window.location.href, this.state.currentComment);
+      this.savePositionToStorage();
     });
   }
 
-  savePositionToStorage(urlName, position){
-    window.localStorage.setItem('fs:' + urlName, position);
+  savePositionToStorage(){
+    window.localStorage.setItem(
+      'fs:' + window.location.href,
+      this.state.currentComment
+    );
   }
 
   render(){
@@ -152,7 +158,7 @@ class FSInterface extends React.Component {
             id="stopSpeaking"
             onClick={this.stopSpeaking}
           >
-            Stop Speaking
+            Stop Speech
           </button>
         </div>
         {this.state.hello}
