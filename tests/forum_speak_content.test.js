@@ -1,7 +1,7 @@
 import chrome from 'sinon-chrome/extensions';
 import { ForumSpeak } from '../src/app';
-import * as fixtures from '../__fixtures__/reddit.js';
-import { voices } from '../__fixtures__/voices.js';
+import * as fixtures from '../fixtures/reddit.js';
+import { voices } from '../fixtures/voices.js';
 
 let fs, utteranceEndHandler, redditPage;
 let sendMessageMock;
