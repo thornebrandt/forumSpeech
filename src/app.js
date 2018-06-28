@@ -194,12 +194,10 @@ export class ForumSpeak {
   createInterface(){
     const styles = {
       display: "block",
-      width: "250px",
-      height: "40px",
       backgroundColor: "white",
       border: "1px black solid",
       borderRadius: '10px',
-      padding: '10px',
+      padding: '15px',
       position: "fixed",
       left: "0px",
       top: "0px",
@@ -217,7 +215,7 @@ export class ForumSpeak {
         />,
       document.getElementById('fs'),
     );
-    new Draggable(this.fsEl); 
+    new Draggable(this.fsEl, { setPosition: false });
   } 
 }
 
