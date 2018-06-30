@@ -193,29 +193,62 @@ export class ForumSpeak {
 
   createInterface(){
     const styles = {
-      display: "block",
-      backgroundColor: "white",
-      border: "1px black solid",
-      borderRadius: '10px',
-      padding: '15px',
-      position: "fixed",
-      left: "0px",
-      top: "0px",
-      zIndex: "1000",
-    }
+      container: {
+        display: "block",
+        backgroundColor: "white",
+        border: "1px black solid",
+        borderRadius: '10px',
+        overflow: 'hidden',
+        padding: '15px',
+        paddingTop: '35px',
+        position: "fixed",
+        left: "0px",
+        top: "0px",
+        zIndex: "100",
+      },
+      handle: {
+        backgroundColor: 'gray',
+        display: 'block',
+        height: '20px',
+        width: '100%',
+        left: 0,
+        top: 0,
+        paddingTop: '5px',
+        position: 'absolute',
+        textAlign: 'center',
+        zIndex: '-1',
+      },  
+      interface: {
+        zIndex: '2',
+      },
+      title: {
+        color: 'white',
+        fontSize: 'larger',
+        fontWeight: 'bold',
+      }
+    };
     this.fsEl = document.createElement("div");
-    Object.assign(this.fsEl.style, styles);
+    Object.assign(this.fsEl.style, styles.container);
     this.fsEl.id = "fs";
     document.body.appendChild(this.fsEl);
     this.fsComponent = ReactDOM.render(
-        <FSInterface
-          contentArray={this.contentArray}
-          currentComment={this.currentComment}
-          rate={this.rate}
-        />,
+        <div>
+          <div id="handle" style={styles.handle}>
+            <span style={styles.title}>ForumSpeech</span>
+          </div>
+          <div id="interface" style={styles.interface}>
+            <FSInterface
+              contentArray={this.contentArray}
+              currentComment={this.currentComment}
+              rate={this.rate}
+              style={styles.interface}
+            />
+          </div>
+        </div>,
       document.getElementById('fs'),
     );
-    new Draggable(this.fsEl, { setPosition: false });
+    const handle = document.getElementById('handle');
+    new Draggable(this.fsEl, { setPosition: false, handle});
   } 
 }
 
